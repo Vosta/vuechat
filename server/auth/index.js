@@ -19,19 +19,24 @@ router.get('/', (req,res)=>{
     })
 });
 
+function sendError(res,status,message,next){
+    const error = new Error(message);
+    res.status(status);
+    next(error);
+}
+
 router.post('/signup', (req, res, next)=>{
     const result = Joi.validate(req.body, schema);
     if(result.error === null){
-        //username unique
+        //check if username is unique
         users.findOne({
             username: req.body.username
         }).then(user => {
-            //if undifined username is not in db
+            //if username exists send an error back
             if (user) {
-                const error = new Error('That username already exists. Please choose another one');
-                res.status(409);
-                next(error);
+                sendError(res, 409, 'That username already exists. Please choose another one.', next)
             } else {
+            //if it doesn't exist hash the password and add the user to the db
                 bcrypt.hash(req.body.password, 10).then(hashPassword =>{
                     const newUser = {
                         username: req.body.username,
@@ -39,23 +44,18 @@ router.post('/signup', (req, res, next)=>{
                     };
 
                     users.insert(newUser).then(user => {
-                        delete user.password; //we don't want to send back the password
+                        delete user.password; //we don't want to send back the password as response
                         res.json(user);
                     });
                 });
             }
         })
     }else{
-        //send error back to client
         res.status(406);
         next(result.error);
     }
 });
-function sendError(res,status,message,next){
-    const error = new Error(message);
-    res.status(status);
-    next(error);
-}
+
 router.post('/login', function(req, res, next){
     const result = Joi.validate(req.body, schema);
     if(result.error === null){
@@ -80,7 +80,7 @@ router.post('/login', function(req, res, next){
                             };
                         });
                     } else {
-                        sendError(res, 422, 'Wrong username or password', next);
+                        sendError(res, 422, 'Wrong username or password.', next);
                     }
                 })
             } else {
