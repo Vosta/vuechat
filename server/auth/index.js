@@ -51,13 +51,13 @@ router.post('/signup', (req, res, next)=>{
             }
         })
     }else{
-        res.status(406);
-        next(result.error);
+        sendError(res, 406, 'Invalid username or password', next);
     }
 });
 
 router.post('/login', function(req, res, next){
     const result = Joi.validate(req.body, schema);
+    console.log(result.error)
     if(result.error === null){
         users.findOne({
             username: req.body.username
@@ -87,6 +87,8 @@ router.post('/login', function(req, res, next){
                 sendError(res, 422, 'That username doesn\'t exist.', next);
             }
         })
+    } else {
+        sendError(res, 406, 'Invalid username or password', next);
     }
 });
 module.exports = router;
