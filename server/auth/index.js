@@ -55,9 +55,9 @@ router.post('/signup', (req, res, next)=>{
     }
 });
 
-router.post('/login', function(req, res, next){
+router.post('/login', (req, res, next) =>{
     const result = Joi.validate(req.body, schema);
-    console.log(result.error)
+    console.log(req.body)
     if(result.error === null){
         users.findOne({
             username: req.body.username
@@ -90,5 +90,13 @@ router.post('/login', function(req, res, next){
     } else {
         sendError(res, 406, 'Invalid username or password', next);
     }
+});
+
+router.post('/verify', function(res, req, next){
+    console.log('came')
+    console.log(req.body)
+    //var decoded = jwt.verify(req.body.token, process.env.TOKEN_SECRET);
+    //console.log(decoded.foo);
+    res.send.json('asd')
 });
 module.exports = router;
