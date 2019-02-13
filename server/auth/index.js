@@ -24,6 +24,21 @@ function sendError(res,status,message,next){
     res.status(status);
     next(error);
 }
+function generateToken(user, res){
+    const payload = {
+        _id: user._id,
+        username: user.username
+    }
+    jwt.sign(payload, process.env.TOKEN_SECRET, {
+        expiresIn: '1d'
+    }, (err, token) => {
+        if(err){
+            sendError(res, 422, 'Unable to log in.', next);
+        } else {
+            res.json({ token });
+        };
+    });
+}
 
 router.post('/signup', (req, res, next)=>{
     const result = Joi.validate(req.body, schema);
@@ -44,8 +59,7 @@ router.post('/signup', (req, res, next)=>{
                     };
 
                     users.insert(newUser).then(user => {
-                        delete user.password; //we don't want to send back the password as response
-                        res.json(user);
+                        generateToken(user, res);
                     });
                 });
             }
@@ -66,19 +80,8 @@ router.post('/login', (req, res, next) =>{
                 bcrypt.compare(req.body.password, user.password)
                 .then(result => {
                     if(result){
-                        const payload = {
-                            _id: user._id,
-                            username: user.username
-                        }
-                        jwt.sign(payload, process.env.TOKEN_SECRET, {
-                            expiresIn: '1d'
-                        }, (err, token) => {
-                            if(err){
-                                sendError(res, 422, 'Unable to log in.', next);
-                            } else {
-                                res.json({ token });
-                            };
-                        });
+                        console.log(user._id)
+                        generateToken(user, res);
                     } else {
                         sendError(res, 422, 'Wrong username or password.', next);
                     }
@@ -92,11 +95,4 @@ router.post('/login', (req, res, next) =>{
     }
 });
 
-router.post('/verify', function(res, req, next){
-    console.log('came')
-    console.log(req.body)
-    //var decoded = jwt.verify(req.body.token, process.env.TOKEN_SECRET);
-    //console.log(decoded.foo);
-    res.send.json('asd')
-});
 module.exports = router;

@@ -6,16 +6,18 @@
           <v-flex xs12 sm8 md6>
             <v-card class="cardform">
               <v-flex class="contentWrapper">
-                <transition name="alert-anim"
-                      enter-active-class="animated shake"
-                      leave-active-class="animated fadeOut">
-                <v-alert
-                  class="alertPopUp"
-                  v-if="alert.message"
-                  style="margin-top: 0px; border-top: 0"
-                  :value="true"
-                  v-bind:type="alert.type"
-                >{{ alert.message }}</v-alert>
+                <transition
+                  name="alert-anim"
+                  enter-active-class="animated shake"
+                  leave-active-class="animated fadeOut"
+                >
+                  <v-alert
+                    class="alertPopUp"
+                    v-if="authenticationError"
+                    style="margin-top: 0px; border-top: 0"
+                    :value="true"
+                    type="error"
+                  >{{ authenticationError }}</v-alert>
                 </transition>
                 <v-flex class="authWrapper">
                   <div class="logo">
@@ -60,10 +62,13 @@
                     <v-card-actions v-if="logingIn">
                       <p class="signUpText">
                         Don't have an account?
-                        <span class="signUpLink" @click="changeForm()">Sign Up</span>
+                        <span
+                          class="signUpLink"
+                          @click="logingIn = !logingIn"
+                        >Sign Up</span>
                       </p>
                       <v-spacer></v-spacer>
-                      <v-btn color="primary" @click="login()">Login</v-btn>
+                      <v-btn color="primary" @click="handleLogIn()">Login</v-btn>
                     </v-card-actions>
 
                     <v-card-actions transition="fade-transition" v-else>
@@ -72,7 +77,7 @@
                         <span class="signUpLink" @click="changeForm()">Log In</span>
                       </p>
                       <v-spacer></v-spacer>
-                      <v-btn color="primary" @click="signUp()">Sign Up</v-btn>
+                      <v-btn color="primary" @click="handleSignUp()">Sign Up</v-btn>
                     </v-card-actions>
                   </v-form>
                 </v-flex>
@@ -89,9 +94,8 @@
 import axios from "axios";
 import Joi from "joi";
 import animateCss from "animate.css";
+import { mapGetters, mapActions } from "vuex";
 
-const SIGNUP_URL = `http://localhost:5000/auth/signup`;
-const LOGIN_URL = `http://localhost:5000/auth/login`;
 const schema = Joi.object().keys({
   username: Joi.string()
     .min(3)
@@ -120,7 +124,13 @@ export default {
     },
     logingIn: true
   }),
-
+  computed: {
+    ...mapGetters([
+      "authenticating",
+      "authenticationError",
+      "authenticationErrorCode"
+    ])
+  },
   watch: {
     user: {
       handler() {
@@ -131,75 +141,51 @@ export default {
   },
 
   methods: {
-    changeForm() {
-      this.logingIn = !this.logingIn;
-    },
-    setAlert(message, type) {
-      console.log(message);
-      console.log(type);
-      this.alert = {
-        message,
-        type
-      };
-    },
+    //store actions
+    ...mapActions(["login", "signUp"]),
     validUser() {
-      if (this.user.password !== this.user.confirmpassword) {
-        this.setAlert("The passwords must match", "error");
+      if (
+        this.user.confirmpassword &&
+        this.user.password !== this.user.confirmpassword
+      ) {
+        this.$store.commit("authenticationError", "The passwords must match");
         return false;
       }
-      const result = Joi.validate(this.user, schema);
+      const result = Joi.validate(
+        {
+          username: this.user.username,
+          password: this.user.password
+        },
+        schema
+      );
       if (result.error === null) {
         return true;
       }
       if (result.error.message.includes("username")) {
-        this.setAlert("Username is invalid", "error");
+        console.log(this.$store)
+        this.$store.commit("authenticationError", "Username is invalid");
       } else {
-        this.setAlert("Password is invalid", "error");
+        this.$store.commit("authenticationError", "Password is invalid");
       }
       return false;
     },
-    login() {
-      let body = {
-        username: this.user.username,
-        password: this.user.password
-      };
-      axios
-        .post(LOGIN_URL, body, {
-          headers: {
-            "Content-type": "application/json"
-          }
-        })
-        .then(response => {
-          console.log(response);
-          localStorage.authToken = response.data.token;
-          this.$router.push('/home');
-        })
-        .catch(error => {
-          console.log(error);
-          this.setAlert(error.response.data.message, "error");
-        });
+    changeForm() {
+      this.logingIn = !this.logingIn;
     },
-    signUp() {
+    handleLogIn() {
       if (this.validUser()) {
-        let body = {
+        this.login({
           username: this.user.username,
           password: this.user.password
-        };
-        axios
-          .post(SIGNUP_URL, body, {
-            headers: {
-              "Content-type": "application/json"
-            }
-          })
-          .then(response => {
-            console.log(response);
-            this.changeForm();
-            return response;
-          })
-          .catch(error => {
-            console.log(error);
-            this.setAlert(error.response.data.message, "error");
-          });
+        });
+      }
+    },
+    handleSignUp() {
+      if (this.validUser()) {
+        this.signUp({
+          username: this.user.username,
+          password: this.user.password
+        });
       }
     }
   }
@@ -210,11 +196,11 @@ export default {
 .cardform {
   width: 100%;
 }
-.alertPopUp{
+.alertPopUp {
   position: absolute;
   width: 100%;
   left: 50%;
-  transform: translate(-50%)
+  transform: translate(-50%);
 }
 .contentWrapper {
   height: 350px;
