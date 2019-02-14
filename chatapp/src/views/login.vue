@@ -27,11 +27,12 @@
                   <v-form class="authform">
                     <v-text-field
                       prepend-icon="person"
-                      name="login"
+                      name="username"
                       v-model="user.username"
                       label="Username"
                       type="text"
-                      required
+                      v-validate="'required|alpha_dash|min:3'"
+                      :error-messages="errors.first('username')"
                     ></v-text-field>
 
                     <v-text-field
@@ -40,8 +41,11 @@
                       v-model="user.password"
                       label="Password"
                       type="password"
-                      required
+                      v-validate="'required|min:3'"
+                      :error-messages="errors.first('password')"
+                      ref= 'password'
                     ></v-text-field>
+
                     <transition
                       name="extrafield-anim"
                       enter-active-class="animated fadeIn"
@@ -51,21 +55,19 @@
                         v-if="!logingIn"
                         class="extraFieldAnimation"
                         prepend-icon="lock"
-                        name="password"
+                        name="confirmpassword"
                         v-model="user.confirmpassword"
                         label="Confirm Password"
                         type="password"
-                        required
+                        v-validate="'required|confirmed:password|min:3'"
+                        :error-messages="errors.first('confirmpassword')"
                       ></v-text-field>
                     </transition>
 
                     <v-card-actions v-if="logingIn">
                       <p class="signUpText">
                         Don't have an account?
-                        <span
-                          class="signUpLink"
-                          @click="logingIn = !logingIn"
-                        >Sign Up</span>
+                        <span class="signUpLink" @click="changeForm()">Sign Up</span>
                       </p>
                       <v-spacer></v-spacer>
                       <v-btn color="primary" @click="handleLogIn()">Login</v-btn>
@@ -91,25 +93,8 @@
 </template>
 
 <script>
-import axios from "axios";
-import Joi from "joi";
-import animateCss from "animate.css";
-import { mapGetters, mapActions } from "vuex";
-
-const schema = Joi.object().keys({
-  username: Joi.string()
-    .min(3)
-    .max(30)
-    .required(),
-  password: Joi.string()
-    .trim()
-    .min(3)
-    .required(),
-  confirmpassword: Joi.string()
-    .trim()
-    .min(3)
-    .required()
-});
+import "animate.css";
+import { mapGetters, mapActions, mapMutations } from "vuex";
 
 export default {
   data: () => ({
@@ -125,55 +110,30 @@ export default {
     logingIn: true
   }),
   computed: {
-    ...mapGetters([
-      "authenticating",
-      "authenticationError",
-      "authenticationErrorCode"
-    ])
+    ...mapGetters(["authenticating", "authenticationError"])
   },
   watch: {
     user: {
-      handler() {
-        this.alert.message = "";
+      handler(){
+        this.SET_authenticationError('');
       },
       deep: true
     }
   },
-
   methods: {
     //store actions
     ...mapActions(["login", "signUp"]),
-    validUser() {
-      if (
-        this.user.confirmpassword &&
-        this.user.password !== this.user.confirmpassword
-      ) {
-        this.$store.commit("authenticationError", "The passwords must match");
-        return false;
-      }
-      const result = Joi.validate(
-        {
-          username: this.user.username,
-          password: this.user.password
-        },
-        schema
-      );
-      if (result.error === null) {
-        return true;
-      }
-      if (result.error.message.includes("username")) {
-        console.log(this.$store)
-        this.$store.commit("authenticationError", "Username is invalid");
-      } else {
-        this.$store.commit("authenticationError", "Password is invalid");
-      }
-      return false;
-    },
+    ...mapMutations(["SET_authenticationError"]),
     changeForm() {
-      this.logingIn = !this.logingIn;
+      this.logingIn = !this.logingIn; //change formular
+      Object.keys(this.user).forEach(v => this.user[v] = ''); //clear the fields
+      this.errors.items = []; //disable the error triger
+    },
+    isValid(){
+      return this.$validator.validate();
     },
     handleLogIn() {
-      if (this.validUser()) {
+      if (this.isValid()) {
         this.login({
           username: this.user.username,
           password: this.user.password
@@ -181,7 +141,7 @@ export default {
       }
     },
     handleSignUp() {
-      if (this.validUser()) {
+      if (this.isValid()) {
         this.signUp({
           username: this.user.username,
           password: this.user.password
@@ -201,6 +161,10 @@ export default {
   width: 100%;
   left: 50%;
   transform: translate(-50%);
+}
+.alertValidate {
+  color: red;
+  position: absolute;
 }
 .contentWrapper {
   height: 350px;

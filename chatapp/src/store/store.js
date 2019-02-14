@@ -12,16 +12,11 @@ export default new Vuex.Store({
     state: {
         authenticating: false,
         accessToken: TokenService.getToken(),
-        authenticationErrorCode: 0,
         authenticationError: ''
     },
     getters: {
         loggedIn: (state) => {
             return state.accessToken ? true : false
-        },
-
-        authenticationErrorCode: (state) => {
-            return state.authenticationErrorCode
         },
 
         authenticationError: (state) => {
@@ -36,21 +31,19 @@ export default new Vuex.Store({
         authenticationRequest(state) {
             state.authenticating = true;
             state.authenticationError = ''
-            state.authenticationErrorCode = 0
         },
 
         authenticationSuccess(state, accessToken) {
             state.accessToken = accessToken
             state.authenticating = false;
         },
-        authenticationError(state, { errorCode, errorMessage }) {
+        SET_authenticationError(state, errorMessage ) {
             state.authenticating = false;
-            state.authenticationErrorCode = errorCode;
             state.authenticationError = errorMessage;
         },
 
         logoutSuccess(state) {
-            state.accessToken = ''
+            state.accessToken = '';
         }
     },
     actions: {
@@ -65,7 +58,7 @@ export default new Vuex.Store({
             } catch (error) {
                 console.log(error);
                 if(error instanceof AuthenticationError){
-                    commit('authenticationError', {errorCode: error.errorCode, errorMessage: error.message});
+                    commit('SET_authenticationError', error.message);
                 }
                 return false;
             }
@@ -81,7 +74,7 @@ export default new Vuex.Store({
                 return true
             } catch (error) {
                 if (error instanceof AuthenticationError) {
-                    commit('authenticationError', {errorCode: error.errorCode, errorMessage: error.message});
+                    commit('SET_authenticationError', error.message);
                 }
     
                 return false;
