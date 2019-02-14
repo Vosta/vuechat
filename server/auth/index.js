@@ -35,7 +35,8 @@ function generateToken(user, res){
         if(err){
             sendError(res, 422, 'Unable to log in.', next);
         } else {
-            res.json({ token });
+            delete user.password;
+            res.json({token});
         };
     });
 }
@@ -55,7 +56,9 @@ router.post('/signup', (req, res, next)=>{
                 bcrypt.hash(req.body.password, 10).then(hashPassword =>{
                     const newUser = {
                         username: req.body.username,
-                        password: hashPassword
+                        password: hashPassword,
+                        contacts: [{'username': 'veljko'}],
+                        chats: [{'room': 'Welcome'}]
                     };
 
                     users.insert(newUser).then(user => {
@@ -80,7 +83,7 @@ router.post('/login', (req, res, next) =>{
                 bcrypt.compare(req.body.password, user.password)
                 .then(result => {
                     if(result){
-                        console.log(user._id)
+                        console.log(user._id);
                         generateToken(user, res);
                     } else {
                         sendError(res, 422, 'Wrong username or password.', next);
@@ -94,5 +97,16 @@ router.post('/login', (req, res, next) =>{
         sendError(res, 406, 'Invalid username or password', next);
     }
 });
-
+router.post('/home', (req, res ,next) => {
+    jwt.verify(req.body.token, process.env.TOKEN_SECRET, function(err, decoded) {
+        users.findOne({
+            username: decoded.username
+        }).then(user => {
+            res.json({
+                contacts: user.contacts,
+                chats: user.chats
+            })
+        })
+      });
+});
 module.exports = router;

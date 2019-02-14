@@ -24,6 +24,19 @@ const UserService = {
             throw new AuthenticationError(error.response.data.message);
         }
     },
+    contactsRequest: async function (url, token) { 
+        const requestData = {
+            method: 'post',
+            url,
+            data: { token }
+        }
+        try {
+            const response = await ApiService.customRequest(requestData);
+            return response;
+        } catch (error) {
+            throw new AuthenticationError(error.response.data.message);
+        }
+    },
     logout: async function () {
         TokenService.removeToken();
     }

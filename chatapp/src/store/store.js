@@ -12,7 +12,9 @@ export default new Vuex.Store({
     state: {
         authenticating: false,
         accessToken: TokenService.getToken(),
-        authenticationError: ''
+        authenticationError: '',
+        contacts: [],
+        chats: []
     },
     getters: {
         loggedIn: (state) => {
@@ -25,15 +27,21 @@ export default new Vuex.Store({
 
         authenticating: (state) => {
             return state.authenticating
+        },
+        contacts: (state) =>{
+            return state.contacts
+        },
+        chats: (state) =>{
+            return state.chats
         }
     },
     mutations: {
-        authenticationRequest(state) {
+        SET_authenticationRequest(state) {
             state.authenticating = true;
             state.authenticationError = ''
         },
 
-        authenticationSuccess(state, accessToken) {
+        SET_authenticationSuccess(state, accessToken) {
             state.accessToken = accessToken
             state.authenticating = false;
         },
@@ -42,16 +50,38 @@ export default new Vuex.Store({
             state.authenticationError = errorMessage;
         },
 
-        logoutSuccess(state) {
+        SET_logoutSuccess(state) {
             state.accessToken = '';
+        },
+        SET_contacts(state, contacts){
+            state.contacts = contacts;
+        },
+        SET_chats(state, chats){
+            state.chats = chats;
         }
     },
     actions: {
+        async requestContacts({ commit }){
+            try {
+                const token = TokenService.getToken();
+                const information = await UserService.contactsRequest(ApiService.INFO_URL, token);
+                console.log(information)
+                commit('SET_contacts', information.data.contacts);
+                commit('SET_chats', information.data.chats);
+                return true;
+            } catch (error) {
+                console.log(error);
+                if(error instanceof AuthenticationError){
+                    commit('SET_authenticationError', error.message);
+                }
+                return false;
+            }
+        },
         async signUp({ commit }, creditentials) {
-            commit('authenticationRequest');
+            commit('SET_authenticationRequest');
             try {
                 const token = await UserService.authRequest(ApiService.SIGNUP_URL,creditentials);
-                commit('authenticationSuccess', token);
+                commit('SET_authenticationSuccess', token);
                 router.push('/home');
 
                 return true;
@@ -64,13 +94,13 @@ export default new Vuex.Store({
             }
         },
         async login({ commit }, creditentials) {
-            commit('authenticationRequest');
+            commit('SET_authenticationRequest');
             try {
                 const token = await UserService.authRequest(ApiService.LOGIN_URL,creditentials);
-                commit('authenticationSuccess', token);
+                commit('SET_authenticationSuccess', token);
                 // Redirect the user to the page he first tried to visit or to the home view
                 router.push(router.history.current.query.redirect || '/home');
-    
+                
                 return true
             } catch (error) {
                 if (error instanceof AuthenticationError) {
@@ -83,7 +113,8 @@ export default new Vuex.Store({
         async logout({ commit }) {
             UserService.logout();
             //remove the token from store
-            commit('authenticationSuccess');
+            commit('SET_authenticationSuccess');
+            commit('SET_logoutSuccess');
             router.push('/login');
         }
     },
