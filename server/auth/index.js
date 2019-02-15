@@ -36,7 +36,7 @@ function generateToken(user, res){
             sendError(res, 422, 'Unable to log in.', next);
         } else {
             delete user.password;
-            res.json({token});
+            res.json({user:user.name, token});
         };
     });
 }
@@ -97,16 +97,32 @@ router.post('/login', (req, res, next) =>{
         sendError(res, 406, 'Invalid username or password', next);
     }
 });
+
+/*function filterContacts(data){
+    data.filter(async contact => {
+        console.log(contact)
+        users.findOne({
+            username: contact
+        }).then(foundContact => {
+            console.log(foundContact.avatar)
+            let contactData = {
+                username: foundContact.username,
+                avatar: foundContact.avatar 
+            }
+            return contactData;
+        });
+    })
+}*/
 router.post('/home', (req, res ,next) => {
     jwt.verify(req.body.token, process.env.TOKEN_SECRET, function(err, decoded) {
         users.findOne({
             username: decoded.username
-        }).then(user => {
+        }).then(async user => {
             res.json({
-                contacts: user.contacts,
-                chats: user.chats
+                username: user.username,
+                avatar: user.avatar
             })
         })
-      });
+    });
 });
 module.exports = router;

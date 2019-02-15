@@ -1,26 +1,25 @@
 <template>
   <div class="contatiner">
-      <chat-list style="width:40%"></chat-list>
-    <div>
-      <v-btn color="primary" @click="logout()">Log out</v-btn>
-    </div>
+      <chat-panel class="chatPanel"></chat-panel>
   </div>
 </template>
 
 <script>
-import { mapActions } from "vuex";
-import chatList from '../components/home/chatList.vue'
+import chatPanel from '../components/home/chatPanel.vue'
 export default {
   components: {
-      chatList
+      chatPanel
   },  
   data() {
     return {};
   },
-  methods: {
-    ...mapActions(["logout"])
-  },
-  
 };
 </script>
+<style scoped>
+.chatPanel {
+  width: 30%;
+  height: 100%
+}
+</style>
+
 

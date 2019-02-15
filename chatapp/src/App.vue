@@ -19,7 +19,8 @@ export default {
 <style>
   .contatiner{
     margin-left: 10%;
-    margin-right: 10% 
+    margin-right: 10%;
+    height: 100%;
   }
 </style>
 

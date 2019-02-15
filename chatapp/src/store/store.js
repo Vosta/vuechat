@@ -13,26 +13,30 @@ export default new Vuex.Store({
         authenticating: false,
         accessToken: TokenService.getToken(),
         authenticationError: '',
+        user: '',
         contacts: [],
         chats: []
     },
     getters: {
         loggedIn: (state) => {
-            return state.accessToken ? true : false
+            return state.accessToken ? true : false;
         },
 
         authenticationError: (state) => {
-            return state.authenticationError
+            return state.authenticationError;
         },
 
         authenticating: (state) => {
-            return state.authenticating
+            return state.authenticating;
+        },
+        user: (state) => {
+            return state.user;
         },
         contacts: (state) =>{
-            return state.contacts
+            return state.contacts;
         },
         chats: (state) =>{
-            return state.chats
+            return state.chats;
         }
     },
     mutations: {
@@ -52,6 +56,9 @@ export default new Vuex.Store({
 
         SET_logoutSuccess(state) {
             state.accessToken = '';
+        },
+        SET_user(state, user){
+            state.user = user
         },
         SET_contacts(state, contacts){
             state.contacts = contacts;
@@ -96,8 +103,9 @@ export default new Vuex.Store({
         async login({ commit }, creditentials) {
             commit('SET_authenticationRequest');
             try {
-                const token = await UserService.authRequest(ApiService.LOGIN_URL,creditentials);
-                commit('SET_authenticationSuccess', token);
+                const data = await UserService.authRequest(ApiService.LOGIN_URL,creditentials);
+                commit('SET_authenticationSuccess', data.token);
+                commit('SET_user', data.user);
                 // Redirect the user to the page he first tried to visit or to the home view
                 router.push(router.history.current.query.redirect || '/home');
                 

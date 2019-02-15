@@ -19,7 +19,7 @@ const UserService = {
         try {
             const response = await ApiService.customRequest(requestData);
             TokenService.saveToken(response.data.token);
-            return response.data.token;
+            return response.data;
         } catch (error) {
             throw new AuthenticationError(error.response.data.message);
         }
