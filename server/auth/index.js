@@ -119,8 +119,8 @@ router.post('/home', (req, res ,next) => {
             username: decoded.username
         }).then(async user => {
             res.json({
-                username: user.username,
-                avatar: user.avatar
+                contacts: user.contacts,
+                chats: user.chats
             })
         })
     });
