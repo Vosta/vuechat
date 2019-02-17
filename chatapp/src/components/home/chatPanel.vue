@@ -33,10 +33,10 @@ export default {
   },
   data() {
     return {
-      user: {
-        username: "Vosta"
-      },
     };
+  },
+  computed: {
+    ...mapGetters(["user"])
   },
   methods: {
     ...mapActions(["logout"])

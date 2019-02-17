@@ -7,6 +7,7 @@ require('dotenv').config();
 const app = express();
 
 const auth = require('./auth/index');
+const user = require('./user/index');
 
 app.use(volleyball);
 app.use(cors({
@@ -22,6 +23,7 @@ app.get('/', (req, res)=> {
 
 //leads to auth/index.js
 app.use('/auth', auth);
+app.use('/', user);
 
 function notFound(req, res, next) {
   res.status(404);

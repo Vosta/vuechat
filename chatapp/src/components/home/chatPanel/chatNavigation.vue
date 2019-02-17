@@ -14,10 +14,10 @@
             </v-tabs>
             <v-tabs-items v-model="tablele">
                 <v-tab-item>
-                    <contact-list :contacts="contacts"></contact-list>
+                    <contact-list :contacts="user.contacts"></contact-list>
                 </v-tab-item>
                 <v-tab-item>
-                    <chat-list :chats="chats"></chat-list>
+                    <chat-list :chats="user.chats"></chat-list>
                 </v-tab-item>
                 <v-tab-item>
                     <status-list></status-list>
@@ -39,14 +39,10 @@
         data() {
             return {
                 tablele: null,
-                user: {
-                    avatar: "https://www.bzl.co/avatar/T-pikachu-1481600098.03.jpg",
-                    username: "Vosta"
-                },
             }
         },
         computed: {
-            ...mapGetters(["contacts", "chats"])
+            ...mapGetters(["user"])
         },
         methods: {
             ...mapActions(["requestContacts"])

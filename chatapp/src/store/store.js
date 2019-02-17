@@ -13,9 +13,7 @@ export default new Vuex.Store({
         authenticating: false,
         accessToken: TokenService.getToken(),
         authenticationError: '',
-        user: '',
-        contacts: [],
-        chats: []
+        user: {},
     },
     getters: {
         loggedIn: (state) => {
@@ -32,12 +30,6 @@ export default new Vuex.Store({
         user: (state) => {
             return state.user;
         },
-        contacts: (state) =>{
-            return state.contacts;
-        },
-        chats: (state) =>{
-            return state.chats;
-        }
     },
     mutations: {
         SET_authenticationRequest(state) {
@@ -60,21 +52,13 @@ export default new Vuex.Store({
         SET_user(state, user){
             state.user = user
         },
-        SET_contacts(state, contacts){
-            state.contacts = contacts;
-        },
-        SET_chats(state, chats){
-            state.chats = chats;
-        }
     },
     actions: {
         async requestContacts({ commit }){
             try {
                 const token = TokenService.getToken();
-                const information = await UserService.contactsRequest(ApiService.INFO_URL, token);
-                console.log(information)
-                commit('SET_contacts', information.data.contacts);
-                commit('SET_chats', information.data.chats);
+                const user = await UserService.contactsRequest(ApiService.INFO_URL, token);
+                commit('SET_user', user);
                 return true;
             } catch (error) {
                 console.log(error);
@@ -105,7 +89,6 @@ export default new Vuex.Store({
             try {
                 const data = await UserService.authRequest(ApiService.LOGIN_URL,creditentials);
                 commit('SET_authenticationSuccess', data.token);
-                commit('SET_user', data.user);
                 // Redirect the user to the page he first tried to visit or to the home view
                 router.push(router.history.current.query.redirect || '/home');
                 

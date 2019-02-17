@@ -7,7 +7,7 @@ import { TokenService } from './storage.service'
 const ApiService = {
     LOGIN_URL: 'http://localhost:5000/auth/login',
     SIGNUP_URL: 'http://localhost:5000/auth/signup',
-    INFO_URL: 'http://localhost:5000/auth/home',
+    INFO_URL: 'http://localhost:5000/user',
     get(resource){
         return axios.get(resource);
     },

@@ -2,7 +2,7 @@
   <div>
     <v-list-tile avatar v-for="contact in contacts" :key="contact.username">
       <v-list-tile-avatar>
-        <img :src="user.avatar">
+        <img :src="contact.avatar">
       </v-list-tile-avatar>
 
       <v-list-tile-content>
@@ -20,10 +20,7 @@
 export default {
   data() {
     return {
-      user: {
-        avatar: "https://www.bzl.co/avatar/T-pikachu-1481600098.03.jpg",
-        username: "Vosta"
-      }
+    
     };
   },
   props: ["contacts"]
