@@ -11,6 +11,7 @@ const router = express.Router();
 const schema = Joi.object().keys({
     username: Joi.string().min(3).max(30).required(),
     password: Joi.string().trim().min(3).required(),
+    avatar: Joi.string()
 })
 
 router.get('/', (req, res) => {
@@ -52,7 +53,14 @@ router.post('/signup', (req, res, next) => {
                 sendError(res, 409, 'That username already exists. Please choose another one.', next)
             } else {
                 //if it doesn't exist hash the password and add the user to the db
-                bcrypt.hash(req.body.password, 10).then(hashPassword => {
+                bcrypt.hash(req.body.password, 10).then(hashedPassword => {
+                    let newUser = {
+                        username: req.body.username,
+                        password: hashedPassword,
+                        avatar: req.body.avatar,
+                        active: true,
+                        contacts: []
+                    }
                     users.insert(newUser).then(user => {
                         generateToken(user, res);
                     });
@@ -90,44 +98,5 @@ router.post('/login', (req, res, next) => {
     }
 });
 
-router.post('/home', (req, res, next) => {
-    jwt.verify(req.body.token, process.env.TOKEN_SECRET, function (err, decoded) {
-        users.findOne({
-            username: decoded.username
-        }).then(async user => {
-            users.aggregate([
-                {
-                    $unwind: "$chats"
-                },
-                {
-                    $lookup:
-                    {
-                        from: 'rooms',
-                        localField: 'chats',
-                        foreignField: 'name',
-                        as: "user_chats"
-                    }
-                },
-                {
-                    $match: {
-                        'username': user.username
-                    }
-                },
-                { $limit: 1 }
-            ]).then((result) => {
-                let userWithChatData = result[0];
-                console.log(userWithChatData.user_chats)
-                let loggedUserData = {
-                    username: userWithChatData.username,
-                    avatar: userWithChatData.avatar,
-                    contacts: userWithChatData.contacts,
-                    chats: userWithChatData.user_chats
-                }
-                console.log(loggedUserData)
-                res.json(loggedUserData);
-             });
-            
-        })
-    });
-});
+
 module.exports = router;
