@@ -3,7 +3,8 @@ const jwt = require('jsonwebtoken');
 const db = require('../db/connection.js');
 const users = db.get('users');
 const chats = db.get('rooms');
-const messages = db.get('messages')
+const messages = db.get('messages');
+const avatars = db.get('avatars');
 const router = express.Router();
 
 function verify (req, res, next){
@@ -19,6 +20,12 @@ function verify (req, res, next){
         })
     });
 }
+function getAvatars(req, res, next){
+    avatars.findOne({ }, {avatars: 1}).then( avatarObject => {
+        req.data = avatarObject.avatars;
+        next();
+    });
+}
 function refreshContacts(req, res, next){
     const userData = req.data.user;
     users.find({_id: { $in: userData.contacts }}, {username: 1, avatar: 1}).then( contacts => {
@@ -32,7 +39,7 @@ function sendData(req, res){
 }
 
 router.post('/user', verify, refreshContacts, sendData);
-
+router.get('/avatars', getAvatars, sendData);
 router.post('/add/contact', verify, (req, res, next) => {
     const curentUser = req.data.user;
     const contactUsername = req.body.username;
@@ -54,6 +61,7 @@ router.post('/search', (req, res, next) => {
     users.findOne({username: req.body.username}).then( user => {
         users.find({ username: { $ne: user.username }}, {username: 1, avatar: 1}).then( allUsers => {
             let filteredUsers = allUsers.filter((foundUser) => {
+                console.log(foundUser)
                 if(foundUser.username.includes(searchValue) && !user.contacts.includes(foundUser._id.toString())){
                     return {
                         username: user.username,
@@ -61,6 +69,7 @@ router.post('/search', (req, res, next) => {
                     };
                 }
             });
+            console.log(filteredUsers)
             res.json(filteredUsers);
         });
     })

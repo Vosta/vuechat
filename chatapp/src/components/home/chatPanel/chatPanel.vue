@@ -4,10 +4,10 @@
       <v-toolbar>
         <v-toolbar-side-icon></v-toolbar-side-icon>
         <v-list-tile-avatar class="profilePicture">
-          <img :src="user.avatar">
+          <img :src="user.currentUser.avatar">
         </v-list-tile-avatar>
 
-        <v-toolbar-title class="profileUsername">{{user.username}}</v-toolbar-title>
+        <v-toolbar-title class="profileUsername">{{user.currentUser.username}}</v-toolbar-title>
 
         <v-spacer></v-spacer>
 
@@ -26,7 +26,7 @@
 
 <script>
 import { mapGetters, mapActions } from "vuex";
-import chatNavigation from './chatPanel/chatNavigation.vue'
+import chatNavigation from './chatNavigation.vue'
 export default {
   components: {
     chatNavigation

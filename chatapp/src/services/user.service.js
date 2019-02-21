@@ -25,6 +25,18 @@ const UserService = {
             throw new AuthenticationError(error.response.data.message);
         }
     },
+    loadAvatars: async function (url){
+        const requestData = {
+            method: 'get',
+            url,
+        }
+        try {
+            const avatars = await ApiService.customRequest(requestData);
+            return avatars.data;
+        } catch (error) {
+            throw new AuthenticationError(error.response.data.message);
+        }
+    },
     contactsRequest: async function (url, token) { 
         const requestData = {
             method: 'post',
@@ -33,7 +45,33 @@ const UserService = {
         }
         try {
             const response = await ApiService.customRequest(requestData);
-            console.log(response)
+            console.log(response);
+            return response.data;
+        } catch (error) {
+            throw new AuthenticationError(error.response.data.message);
+        }
+    },
+    searchData: async function (url, searchData){
+        const requestData = {
+            method: 'post',
+            url: url,
+            data: searchData
+        }
+        try {
+            const response = await ApiService.customRequest(requestData);
+            return response.data;
+        } catch (error) {
+            throw new AuthenticationError(error.response.data.message);
+        }
+    },
+    addContact: async function (url, token, username){
+        const requestData = {
+            method: 'post',
+            url: url,
+            data: { token, username }
+        }
+        try {
+            const response = await ApiService.customRequest(requestData);
             return response.data;
         } catch (error) {
             throw new AuthenticationError(error.response.data.message);

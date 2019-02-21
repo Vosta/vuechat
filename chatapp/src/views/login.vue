@@ -19,12 +19,22 @@
                     type="error"
                   >{{ authenticationError }}</v-alert>
                 </transition>
+
                 <v-flex class="authWrapper">
-                  <div class="logo">
+
+                  <div v-if="logingIn" class="logo">
                     <img src="../assets/logo.png">
                   </div>
 
-                  <v-form class="authform">
+                  <v-avatar v-else @click="toggleAvatarDialog" class="avatarImage bigAvatarImage" size=200>
+                    <img :src="avatarDialog.currentAvatar">
+                  </v-avatar>
+      
+                  <avatar-dialog v-if="avatarDialog.avatarDialog">
+                    <v-flex></v-flex>
+                  </avatar-dialog>
+                
+                  <v-form v-else class="authform">
                     <v-text-field
                       prepend-icon="person"
                       name="username"
@@ -95,8 +105,11 @@
 <script>
 import "animate.css";
 import { mapGetters, mapActions, mapMutations } from "vuex";
-
+import avatarDialog from '../components/dialogs/avatarDialog.vue'
 export default {
+  components: {
+    avatarDialog
+  },
   data: () => ({
     alert: {
       message: "",
@@ -105,12 +118,12 @@ export default {
     user: {
       username: "",
       password: "",
-      confirmpassword: ""
+      confirmpassword: "",
     },
-    logingIn: true
+    logingIn: true,
   }),
   computed: {
-    ...mapGetters(["authenticating", "authenticationError"])
+    ...mapGetters(["authenticationError","currentAvatar", "avatarDialog"]),
   },
   watch: {
     user: {
@@ -121,9 +134,9 @@ export default {
     }
   },
   methods: {
-    //store actions
     ...mapActions(["login", "signUp"]),
-    ...mapMutations(["SET_authenticationError"]),
+    ...mapMutations(["SET_avatarDialog", "SET_authenticationError"]),
+
     changeForm() {
       this.logingIn = !this.logingIn; //change formular
       Object.keys(this.user).forEach(v => this.user[v] = ''); //clear the fields
@@ -144,15 +157,19 @@ export default {
       if (this.isValid()) {
         this.signUp({
           username: this.user.username,
-          password: this.user.password
+          password: this.user.password,
+          avatar: this.currentAvatar,
         });
       }
+    },
+    toggleAvatarDialog(){
+      this.SET_avatarDialog(!this.avatarDialog);
     }
   }
 };
 </script>
 
-<style scoped>
+<style>
 .cardform {
   width: 100%;
 }
@@ -186,6 +203,14 @@ export default {
 }
 .logo {
   align-self: center;
+}
+.bigAvatarImage{
+  border: 2px solid black;
+  align-self: center;
+}
+.avatarImage:hover{
+  cursor: pointer;
+  filter: brightness(120%);
 }
 .signUpText {
   margin-right: 20px;
