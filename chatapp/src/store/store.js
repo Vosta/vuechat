@@ -65,6 +65,7 @@ export default new Vuex.Store({
             return state.avatarDialog.avatars;
         },
         currentAvatar: (state) => {
+            console.log(state.avatarDialog.currentAvatar)
             return state.avatarDialog.currentAvatar;
         }
     },
@@ -183,7 +184,6 @@ export default new Vuex.Store({
         async searchData({ commit }, searchData) {
             try {
                 const queryedContacts = await UserService.searchData(ApiService.SEARCH_URL, searchData);
-                console.log(queryedContacts)
                 commit('SET_searchedData', queryedContacts);
                 commit('SET_searchStatus', true);
                 return true;

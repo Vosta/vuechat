@@ -56,24 +56,12 @@ router.post('/add/contact', verify, (req, res, next) => {
 
 
 router.post('/search', (req, res, next) => {
-    let searchValue = req.body.value;
-    console.log(req.body)
+    const searchValue = req.body.value;
     users.findOne({username: req.body.username}).then( user => {
-        users.find({ username: { $ne: user.username }}, {username: 1, avatar: 1}).then( allUsers => {
-            let filteredUsers = allUsers.filter((foundUser) => {
-                console.log(foundUser)
-                if(foundUser.username.includes(searchValue) && !user.contacts.includes(foundUser._id.toString())){
-                    return {
-                        username: user.username,
-                        avatar: user.avatar
-                    };
-                }
-            });
-            console.log(filteredUsers)
-            res.json(filteredUsers);
+        users.find({username: {$regex: searchValue, $ne: user.username, $options : 'i'}, _id: { $nin: user.contacts }}).then( filteredUsers => {
+            res.send(filteredUsers);
         });
-    })
-    
+    });
 });
 
 module.exports = router;

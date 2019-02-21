@@ -18,7 +18,7 @@ export default {
     return {};
   },
   computed: {
-    ...mapGetters(["avatarDialog.avatars"])
+    ...mapGetters(["avatars"])
   },
   methods: {
     ...mapMutations(["SET_currentAvatar", "SET_avatarDialog"]),

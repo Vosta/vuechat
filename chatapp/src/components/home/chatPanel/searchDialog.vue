@@ -16,7 +16,7 @@
       </v-list-tile>
     </div>
     <div v-else>
-        <p>No users</p>
+        <p class="noTextFound">No users found</p>
     </div>
   </div>
 </template>
@@ -38,6 +38,12 @@ export default {
 .searchUser:hover{
   cursor: pointer;    
   background-color: rgba(0, 0, 0, 0.18);
+}
+.noTextFound{
+  padding-top: 49%;
+  width: max-content;
+  margin: auto;
+  color: #999;
 }
 </style>
 
