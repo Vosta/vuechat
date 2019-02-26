@@ -56,6 +56,7 @@ function removeContact(req, res, next) {
         })
 }
 
+<<<<<<< HEAD
 function viewChat(req, res, next) {
     const userData = req.data.user;
     const chatParticipents = [userData._id.toString(), req.body.contactId]
@@ -141,6 +142,15 @@ router.post('/search', (req, res, next) => {
             res.send(filteredUsers);
         });
     });
+=======
+router.post('/search', (req, res, next) => {
+    const searchValue = req.body.value;
+    users.findOne({username: req.body.username}).then( user => {
+        users.find({username: {$regex: searchValue, $ne: user.username, $options : 'i'}, _id: { $nin: user.contacts }}).then( filteredUsers => {
+            res.send(filteredUsers);
+        });
+    });
+>>>>>>> 02c8eb064cf717b4f868a72d974ff890ac0ceb4c
 });
 
 module.exports = router;
