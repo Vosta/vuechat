@@ -1,10 +1,10 @@
 const express = require('express');
 const volleyball = require('volleyball');
 const cors = require('cors');
-
 require('dotenv').config();
 
 const app = express();
+const server = require('http').Server(app);
 
 const auth = require('./auth/index');
 const user = require('./user/index');
@@ -25,6 +25,24 @@ app.get('/', (req, res)=> {
 app.use('/auth', auth);
 app.use('/', user);
 
+// Setting up Socket.io
+
+const io = require('socket.io')(server);
+
+io.on("connection", function(socket){
+  console.log('got it');
+
+  socket.on('disconnect', async () => {
+    console.log('User Disconnected');
+  });
+
+  socket.on('message', async (data) => {
+    console.log(data);
+    io.emit("messageSent", data);
+  })
+
+})
+
 function notFound(req, res, next) {
   res.status(404);
   const error = new Error('Not Found - ' + req.originalUrl);
@@ -43,6 +61,6 @@ app.use(notFound);
 app.use(errorHandler);
 
 const port = process.env.PORT || 5000;
-app.listen(port, () => {
+server.listen(port, () => {
   console.log('Listening on port', port);
 });

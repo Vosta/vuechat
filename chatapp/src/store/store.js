@@ -18,7 +18,6 @@ export default new Vuex.Store({
             avatars: [],
             avatarDialog: false,
             currentAvatar: 'https://images-wixmp-ed30a86b8c4ca887773594c2.wixmp.com/intermediary/f/f19a8dbd-b9e4-4ce8-9726-5a1412453ce7/dabkn0i-75879278-83f3-48cc-bf00-c9cd607b5224.png',
-
         },
         user: {
             currentUser: {
@@ -31,6 +30,17 @@ export default new Vuex.Store({
             searchStatus: false,
             searchValue: '',
             searchedData: []
+        },
+        chat: {
+            messages: [{
+                content: '',
+                by: '',
+                date: 0
+            }],
+            chatStatus: false,
+            chatId: '',
+            chatAvatar: '',
+            chatName: ''
         }
 
     },
@@ -65,7 +75,23 @@ export default new Vuex.Store({
             return state.avatarDialog.avatars;
         },
         currentAvatar: (state) => {
+            console.log(state.avatarDialog.currentAvatar)
             return state.avatarDialog.currentAvatar;
+        },
+        chatStatus: (state) => {
+            return state.chat.chatStatus;
+        },
+        chatId: (state) => {
+            return state.chat.chatId;
+        },
+        chatAvatar: (state) => {
+            return state.chat.chatAvatar;
+        },
+        chatName: (state) => {
+            return state.chat.chatName;
+        },
+        chatMessages: (state) => {
+            return state.chat.messages;
         }
     },
     mutations: {
@@ -116,8 +142,25 @@ export default new Vuex.Store({
         SET_searchedData(state, value) {
             state.search.searchedData = value;
         },
-
-
+        SET_chatStatus(state, value) {
+            state.chat.chatStatus = value;
+        },
+        SET_chatId(state, value) {
+            state.chat.chatId = value;
+        },
+        SET_chatAvatar(state, value) {
+            state.chat.chatAvatar = value;
+        },
+        SET_chatName(state, value) {
+            state.chat.chatName = value;
+        },
+        SET_chatContent(state, value){
+            state.chat.messages = value;
+        },
+        ADD_Message(state, payload) {
+            console.log(payload)
+            state.chat.messages = payload;
+        }
     },
     actions: {
         async requestContacts({ commit }) {
@@ -181,9 +224,9 @@ export default new Vuex.Store({
             }
         },
         async searchData({ commit }, searchData) {
+            
             try {
                 const queryedContacts = await UserService.searchData(ApiService.SEARCH_URL, searchData);
-                console.log(queryedContacts)
                 commit('SET_searchedData', queryedContacts);
                 commit('SET_searchStatus', true);
                 return true;
@@ -200,7 +243,6 @@ export default new Vuex.Store({
             try {
                 const token = TokenService.getToken();
                 const response = await UserService.addContact(ApiService.ADD_CONTACT_URL, token, username);
-                console.log(response);
                 commit('SET_user', response)
                 commit('SET_searchStatus', false);
                 return true;
@@ -210,6 +252,47 @@ export default new Vuex.Store({
                 }
                 return false;
             }
+        },
+        async removeContact({ commit }, contactId) {
+            try {
+                console.log(contactId);
+                if(contactId == this.getters.chatId){
+                    commit('SET_chatStatus', false);
+                }
+                const token = TokenService.getToken();
+                const response = await UserService.removeContact(ApiService.REMOVE_CONTACT_URL, token, contactId);
+                commit('SET_user', response);
+                return true;
+            } catch (error) {
+                if (error instanceof AuthenticationError) {
+                    console.log(error.message)
+                }
+                return false;
+            }
+        },
+        async openChat({ commit }, data) {
+            commit('SET_chatStatus', true);
+            commit('SET_chatAvatar', data.avatar);
+            commit('SET_chatName', data.name);
+            const token = TokenService.getToken();
+            const chatData = await UserService.chatRequest(ApiService.CHAT_URL, token, data.id);
+            console.log(chatData);
+            commit('SET_chatContent', chatData.messages);
+            commit('SET_chatId', chatData.chatId);
+            console.log(this.getters.chatId);
+            return true;
+        },
+        async sendMessage({ commit }, message) {
+            const messageData = {
+                message,
+                chatId: this.getters.chatId
+            }
+            console.log(this.getters.chatId)
+            const token = TokenService.getToken();
+            const updatedChat = await UserService.sendMessage(ApiService.MESSAGES_URL, token, messageData);
+            console.log(updatedChat)
+            commit('ADD_Message', updatedChat.messages);
+            return true;
         },
         async logout({ commit }) {
             UserService.logout();

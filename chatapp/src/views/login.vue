@@ -1,7 +1,7 @@
 <template>
   <v-layout>
     <v-content>
-      <v-container fluid fill-height>
+      <v-container fluid fill-height style="padding-top: 0">
         <v-layout align-center justify-center>
           <v-flex xs12 sm8 md6>
             <v-card class="cardform">
@@ -27,12 +27,12 @@
                   </div>
 
                   <v-avatar v-else @click="toggleAvatarDialog" class="avatarImage bigAvatarImage" size=200>
-                    <img :src="avatarDialog.currentAvatar">
+                    <img :src="currentAvatar">
                   </v-avatar>
       
-                  <avatar-dialog v-if="avatarDialog.avatarDialog">
+                  <avatar-picker v-if="avatarDialog">
                     <v-flex></v-flex>
-                  </avatar-dialog>
+                  </avatar-picker>
                 
                   <v-form v-else class="authform">
                     <v-text-field
@@ -105,10 +105,10 @@
 <script>
 import "animate.css";
 import { mapGetters, mapActions, mapMutations } from "vuex";
-import avatarDialog from '../components/dialogs/avatarDialog.vue'
+import avatarPicker from '../components/dialogs/avatarDialog.vue'
 export default {
   components: {
-    avatarDialog
+    avatarPicker
   },
   data: () => ({
     alert: {

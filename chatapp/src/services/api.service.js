@@ -10,8 +10,10 @@ const ApiService = {
     INFO_URL: 'http://localhost:5000/user',
     SEARCH_URL: 'http://localhost:5000/search',
     ADD_CONTACT_URL: 'http://localhost:5000/add/contact',
-    EDIT_CONTACT_URL: 'http://localhost:5000/edit-contact',
-    DELETE_CONTACT_URL: 'http://localhost:5000/delete-contact',
+    EDIT_CONTACT_URL: 'http://localhost:5000/edit/contact',
+    REMOVE_CONTACT_URL: 'http://localhost:5000/remove/contact',
+    CHAT_URL: 'http://localhost:5000/chat/view',
+    MESSAGES_URL: 'http://localhost:5000/message',
     AVATARS_URL: 'http://localhost:5000/avatars',
     get(resource){
         return axios.get(resource);

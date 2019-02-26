@@ -3,7 +3,7 @@ import App from './App.vue'
 import router from './router'
 import store from './store/store'
 import VeeValidate from 'vee-validate';
-
+import VueSocketio from 'vue-socket-io';
 //Vuetify
 import './plugins/vuetify'
 import Vuetify, {
@@ -22,6 +22,7 @@ Vue.config.productionTip = false
 
 Vue.use(VeeValidate);
 Vue.use(Vuetify, {
+  iconfont: 'mdi',
   components: {
     VApp,
     VLayout,
@@ -33,6 +34,7 @@ Vue.use(Vuetify, {
     VFadeTransition
   }
 });
+Vue.use(VueSocketio, 'http://localhost:5000');
 
 new Vue({
   router,

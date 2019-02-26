@@ -22,8 +22,8 @@
           <v-tab>Chats</v-tab>
           <v-tab>Status</v-tab>
         </v-tabs>
-        <v-tabs-items v-model="tablele">
-          <v-tab-item>
+        <v-tabs-items v-model="tablele" >
+          <v-tab-item >
             <contact-list :contacts="user.contacts"></contact-list>
           </v-tab-item>
           <v-tab-item>
@@ -43,11 +43,10 @@
     import chatList from './chatList.vue';
     import contactList from './contactList.vue';
     import statusList from './statusList.vue';
-    import dialogView from './dialog.vue';
     import searchDialog from './searchDialog.vue';
     export default {
         components: {
-            chatList, contactList, statusList, dialogView, searchDialog
+            chatList, contactList, statusList, searchDialog
         },
         data() {
             return {

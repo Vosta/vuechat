@@ -77,6 +77,45 @@ const UserService = {
             throw new AuthenticationError(error.response.data.message);
         }
     },
+    removeContact: async function (url, token, contactId){
+        const requestData = {
+            method: 'post',
+            url: url,
+            data: { token, contactId }
+        }
+        try {
+            const response = await ApiService.customRequest(requestData);
+            return response.data;
+        } catch (error) {
+            throw new AuthenticationError(error.response.data.message);
+        }
+    },
+    chatRequest: async function (url, token, contactId){
+        const requestData = {
+            method: 'post',
+            url: url,
+            data: { token, contactId }
+        }
+        try {
+            const response = await ApiService.customRequest(requestData);
+            return response.data;
+        } catch (error) {
+        
+        }
+    },
+    sendMessage: async function(url, token, messageData) {
+        const requestData = {
+            method: 'post',
+            url: url,
+            data: { token, messageData }
+        }
+        try {
+            const response = await ApiService.customRequest(requestData);
+            return response.data;
+        } catch (error) {
+        
+        }
+    },
     logout: async function () {
         TokenService.removeToken();
     }
