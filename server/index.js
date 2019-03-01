@@ -6,8 +6,8 @@ require('dotenv').config();
 const app = express();
 const server = require('http').Server(app);
 
-const auth = require('./auth/index');
-const user = require('./user/index');
+const auth = require('./routes/auth/index');
+const user = require('./routes/user/index');
 
 app.use(volleyball);
 app.use(cors({
@@ -15,31 +15,62 @@ app.use(cors({
 }));
 app.use(express.json());
 
-app.get('/', (req, res)=> {
-    res.json({
-        message: 'hi'
-    });
+app.get('/', (req, res) => {
+  res.json({
+    message: 'hi'
+  });
 });
 
 //leads to auth/index.js
 app.use('/auth', auth);
-app.use('/', user);
+app.use('/user', user);
 
 // Setting up Socket.io
 
 const io = require('socket.io')(server);
 
-io.on("connection", function(socket){
-  console.log('got it');
+var currentConnections = {};
+var currentUserId = '';
+
+io.on("connection", function (socket) {
+  console.log('User Connected');
 
   socket.on('disconnect', async () => {
     console.log('User Disconnected');
+    delete currentConnections[currentUserId];
   });
 
-  socket.on('message', async (data) => {
-    console.log(data);
-    io.emit("messageSent", data);
+  socket.on('userLoggedIn', async (user) => {
+    currentConnections[user._id] = { 
+      username: user.username,
+    }
+    console.log(currentConnections)
+    socket.broadcast.emit('activeUser', user);
   })
+
+  socket.on('ADD_CONTACT', async (data) => {
+    console.log(data);
+
+  });
+
+  socket.on('JOIN_ROOM', async (data) => {
+    let room = data.chat;
+    if (socket.room) {
+      socket.leave(socket.room);
+    }
+    socket.join(room);
+    socket.room = room;
+    console.info(socket.id + ' joined room ' + room, socket.room);
+  });
+
+
+  socket.on('message', async (data) => {
+    let room = data.chatId;
+    console.log('sending message to room', room)
+    socket.broadcast.to(room).emit('messageSent', {
+      message: data.message
+    });
+  });
 
 })
 

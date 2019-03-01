@@ -1,11 +1,10 @@
 const express = require('express');
 const Joi = require('joi');
 const bcrypt = require('bcryptjs');
-const jwt = require('jsonwebtoken')
-const db = require('../db/connection.js');
+const sendError = require('../../helpers/errorHandeler');
+const db = require('../../db/connection.js');
 const users = db.get('users');
-users.createIndex('username', { unique: true });
-
+const jwt = require('jsonwebtoken');
 const router = express.Router();
 
 const schema = Joi.object().keys({
@@ -14,17 +13,6 @@ const schema = Joi.object().keys({
     avatar: Joi.string()
 })
 
-router.get('/', (req, res) => {
-    res.send({
-        message: 'signup'
-    })
-});
-
-function sendError(res, status, message, next) {
-    const error = new Error(message);
-    res.status(status);
-    next(error);
-}
 function generateToken(user, res) {
     const payload = {
         _id: user._id,
@@ -58,7 +46,6 @@ router.post('/signup', (req, res, next) => {
                         username: req.body.username,
                         password: hashedPassword,
                         avatar: req.body.avatar,
-                        active: true,
                         contacts: []
                     }
                     users.insert(newUser).then(user => {
@@ -74,7 +61,6 @@ router.post('/signup', (req, res, next) => {
 
 router.post('/login', (req, res, next) => {
     const result = Joi.validate(req.body, schema);
-    console.log(req.body)
     if (result.error === null) {
         users.findOne({
             username: req.body.username

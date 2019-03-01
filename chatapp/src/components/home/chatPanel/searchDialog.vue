@@ -1,7 +1,7 @@
 <template>
   <div>
     <div v-if="searchedData.length>0">
-      <v-list-tile v-for="user in searchedData" @click="addContact(user.username)" class="searchUser" avatar  :key="user.username">
+      <v-list-tile v-for="user in searchedData" @click="addContact(user._id)" class="searchUser" avatar  :key="user.username">
         <v-list-tile-avatar>
           <img :src="user.avatar">
         </v-list-tile-avatar>

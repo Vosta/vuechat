@@ -4,6 +4,7 @@
       <v-layout>
         <v-flex>
           <v-text-field
+            class="messageField"
             v-model="message"
             append-outer-icon="send"
             box
@@ -11,8 +12,9 @@
             clearable
             label="Message"
             type="text"
-            @click:append-outer="sendMessage"
-            @keypress.enter.prevent="sendMessage"
+            @click:append-outer="setMessage"
+            @keypress.enter.prevent="setMessage"
+            hide-details
           ></v-text-field>
         </v-flex>
       </v-layout>
@@ -25,30 +27,39 @@ export default {
   data: () => ({
     show: false,
     message: "",
-    marker: true
+    typing: false,
+    timeout: null
   }),
-
+  watch: {},
   computed: {
-    ...mapGetters(["user"])
+    ...mapGetters(["user", "chatId"])
   },
 
   methods: {
-    ...mapActions(["sendMessageData"]),
-    toggleMarker() {
-      this.marker = !this.marker;
+    ...mapActions(["sendMessage"]),
+
+    setMessage() {
+      if (this.message !== "") {
+        let messageData = {
+          chatId: this.chatId,
+          message: {
+            content: this.message,
+            by: this.user.currentUser._id,
+            date: Date.now()
+          }
+        };
+        this.$socket.emit("message", messageData);
+        this.sendMessage(messageData);
+        this.clearMessage();
+      }
     },
-    async sendMessage() {
-      let messageData = {
-        content: this.message,
-        by: this.user.currentUser._id,
-        date: Date.now()
-      };
-      let response = await this.$socket.emit("message", messageData);
-      this.clearMessage();
-    },
+
     clearMessage() {
       this.message = "";
     }
   }
 };
 </script>
+<style scoped>
+</style>
+

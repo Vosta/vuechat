@@ -15,7 +15,9 @@
           ></v-text-field>
         </v-card>
       </v-layout>
+
       <search-dialog v-if="searchStatus" :searchVal="searchValue"></search-dialog>
+
       <v-flex v-else class="tabslayout">
         <v-tabs style="width:100%" slot="extension" v-model="tablele" grow>
           <v-tab>Contacts</v-tab>
@@ -63,11 +65,7 @@
               let searchValue = e.target.value;
               this.SET_searchValue(searchValue);
               if(searchValue !== ''){
-                let searchData = {
-                  username: this.user.currentUser.username,
-                  value: searchValue
-                }
-                this.searchData(searchData);
+                this.searchData(searchValue);
               } else {
                 this.SET_searchStatus(false);
               }

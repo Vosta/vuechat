@@ -7,14 +7,15 @@ import { TokenService } from './storage.service'
 const ApiService = {
     LOGIN_URL: 'http://localhost:5000/auth/login',
     SIGNUP_URL: 'http://localhost:5000/auth/signup',
-    INFO_URL: 'http://localhost:5000/user',
-    SEARCH_URL: 'http://localhost:5000/search',
-    ADD_CONTACT_URL: 'http://localhost:5000/add/contact',
-    EDIT_CONTACT_URL: 'http://localhost:5000/edit/contact',
-    REMOVE_CONTACT_URL: 'http://localhost:5000/remove/contact',
-    CHAT_URL: 'http://localhost:5000/chat/view',
-    MESSAGES_URL: 'http://localhost:5000/message',
-    AVATARS_URL: 'http://localhost:5000/avatars',
+    AVATARS_URL: 'http://localhost:5000/user/avatars',
+    INFO_URL: 'http://localhost:5000/user/data',
+    SEARCH_URL: 'http://localhost:5000/user/search',
+    ADD_CONTACT_URL: 'http://localhost:5000/user/contact/add',
+    EDIT_CONTACT_URL: 'http://localhost:5000/user/contact/edit',
+    REMOVE_CONTACT_URL: 'http://localhost:5000/user/contact/remove',
+    CHAT_URL: 'http://localhost:5000/user/chat',
+    MESSAGES_URL: 'http://localhost:5000/user/message',
+    
     get(resource){
         return axios.get(resource);
     },

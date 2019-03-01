@@ -1,14 +1,16 @@
 <template>
   <div>
     <chat-toolbar :name="chatName" :avatar="chatAvatar" class="chatToolbar"></chat-toolbar>
-    <div v-if="chatStatus" class="chatDisplay">
-      <div class="divrow" v-for="(message, index) in chatMessages" :key="index">
-        <v-flex v-if="message.content" class="from-contact">
-          <p class="chatMessage">{{ message.content }}</p>
-        </v-flex>
+    <div class="chatWrapper" >
+      <div v-if="chatStatus" class="chatDisplay" ref="chatDisplayId">
+        <div class="divrow" v-for="(message, index) in chatMessages" :key="index">
+          <v-flex v-if="message.content" class="from-contact" :class="messageByWho(message.by)">
+            <p class="chatMessage">{{ message.content }}</p>
+          </v-flex>
+        </div>
       </div>
+      <chat-keyboard class="chatKeyboard"></chat-keyboard>
     </div>
-    <chat-keyboard class="chatKeyboard"></chat-keyboard>
   </div>
 </template>
 
@@ -22,33 +24,44 @@ export default {
     chatToolbar,
     chatKeyboard
   },
+  data() {
+    return {
+      typing: {
+        status: false,
+        message: ''
+      }
+    }
+  },
   computed: {
     ...mapGetters([
       "dialogStatus",
       "chatStatus",
       "chatName",
       "chatAvatar",
-      "chatMessages"
+      "chatMessages",
+      "chatId",
+      "user"
     ])
   },
   methods: {
     ...mapActions(["logout", "sendMessage"]),
-  },
-  sockets: {
-    connect: function() {
-      console.log("socket connected");
-    },
-    messageSent: function(val) {
-      console.log("asd");
-      this.ADD_Message(val);
+    ...mapMutations(["ADD_Message"]),
+    
+    messageByWho(userId) {
+      if (userId === this.user.currentUser._id) {
+        return "from-user";
+      }
+      return "from-contact";
     }
   },
   mounted() {
     this.$socket.on("messageSent", data => {
-      this.sendMessage(data);
+      this.ADD_Message(data.message);
     });
-    
-  }
+  },
+  updated() {
+    this.$refs.chatDisplayId.scrollTop = this.$refs.chatDisplayId.scrollHeight;
+  },
 };
 </script>
 <style scoped>
@@ -56,16 +69,21 @@ export default {
   background-color: red;
 }
 .chatKeyboard {
-  margin: auto;
+  position: absolute;
   width: 70%;
-  position: relative;
-  bottom: 0;
+  left: 50%;
+  transform: translate(-50%)
+}
+.chatWrapper {
+  height: 90%;
 }
 .chatDisplay {
-  height: 85%;
+  height: 90%;
   width: 100%;
+  max-height: 800px;
+  overflow: auto;
   position: relative;
-  padding-top: 20px
+  padding-top: 20px;
 }
 .from-contact {
   margin-top: 20px;
@@ -82,8 +100,7 @@ export default {
   height: max-content;
   background-color: rgb(112, 199, 112);
   border-radius: 55px;
-  position: absolute;
-  right: 70px;
+  margin-left: 60%;
 }
 .chatMessage {
   word-wrap: break-word;
@@ -94,5 +111,6 @@ export default {
 .divrow {
   width: 100%;
   height: 70px;
+  min-height: max-content;
 }
 </style>

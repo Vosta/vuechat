@@ -1,10 +1,12 @@
 import Vue from 'vue'
 import Vuex from 'vuex'
 import router from '../router'
-import { UserService, AuthenticationError } from '../services/user.service'
+import { UserService } from '../services/userService/user.service';
+import { ChatService } from '../services/userService/chat.service';
+import { SearchService } from '../services/userService/search.service';
 import { TokenService } from '../services/storage.service'
 import { ApiService } from '../services/api.service';
-
+import AuthenticationError from '../services/error.service';
 Vue.use(Vuex)
 
 export default new Vuex.Store({
@@ -26,6 +28,7 @@ export default new Vuex.Store({
             },
             contacts: []
         },
+        activeUsers: {},
         search: {
             searchStatus: false,
             searchValue: '',
@@ -37,12 +40,12 @@ export default new Vuex.Store({
                 by: '',
                 date: 0
             }],
+            socketId: '',
             chatStatus: false,
             chatId: '',
             chatAvatar: '',
             chatName: ''
         }
-
     },
     getters: {
         loggedIn: (state) => {
@@ -92,6 +95,12 @@ export default new Vuex.Store({
         },
         chatMessages: (state) => {
             return state.chat.messages;
+        },
+        socketId: (state) => {
+            return state.chat.socketId
+        },
+        activeUsers: (state) => {
+            return state.activeUsers
         }
     },
     mutations: {
@@ -119,6 +128,14 @@ export default new Vuex.Store({
                 currentUser: data.user,
                 contacts: data.contacts
             }
+        },
+        SET_ActiveUsers (state, userData) {
+            if(userData){
+                state.activeUsers[userData._id] = {
+                    username: userData.username
+                }
+            }
+            
         },
         SET_avatars(state, avatars) {
             state.avatarDialog.avatars = avatars;
@@ -154,12 +171,15 @@ export default new Vuex.Store({
         SET_chatName(state, value) {
             state.chat.chatName = value;
         },
-        SET_chatContent(state, value){
+        SET_chatContent(state, value) {
             state.chat.messages = value;
+        },
+        SET_socketId(state, value) {
+            state.chat.socketId = value;
         },
         ADD_Message(state, payload) {
             console.log(payload)
-            state.chat.messages = payload;
+            state.chat.messages.push(payload);
         }
     },
     actions: {
@@ -167,6 +187,12 @@ export default new Vuex.Store({
             try {
                 const token = TokenService.getToken();
                 const data = await UserService.contactsRequest(ApiService.INFO_URL, token);
+                console.log(data);
+                const socketData = {
+                    username: data.user.username,
+                    _id: data.user._id
+                }
+                this._vm.$socket.emit('userLoggedIn', socketData);
                 commit('SET_user', data);
                 return true;
             } catch (error) {
@@ -196,7 +222,6 @@ export default new Vuex.Store({
                 const token = await UserService.authRequest(ApiService.SIGNUP_URL, creditentials);
                 commit('SET_authenticationSuccess', token);
                 router.push('/home');
-
                 return true;
             } catch (error) {
                 console.log(error);
@@ -210,23 +235,23 @@ export default new Vuex.Store({
             commit('SET_authenticationRequest');
             try {
                 const data = await UserService.authRequest(ApiService.LOGIN_URL, creditentials);
+                console.log(data);
                 commit('SET_authenticationSuccess', data.token);
                 // Redirect the user to the page he first tried to visit or to the home view
                 router.push(router.history.current.query.redirect || '/home');
-
                 return true
             } catch (error) {
+                console.log(error)
                 if (error instanceof AuthenticationError) {
                     commit('SET_authenticationError', error.message);
                 }
-
                 return false;
             }
         },
-        async searchData({ commit }, searchData) {
-            
+        async searchData({ commit }, searchValue) {
             try {
-                const queryedContacts = await UserService.searchData(ApiService.SEARCH_URL, searchData);
+                const token = TokenService.getToken();
+                const queryedContacts = await SearchService.searchData(ApiService.SEARCH_URL, token, searchValue);
                 commit('SET_searchedData', queryedContacts);
                 commit('SET_searchStatus', true);
                 return true;
@@ -234,16 +259,19 @@ export default new Vuex.Store({
                 if (error instanceof AuthenticationError) {
                     commit('SET_authenticationError', error.message);
                 }
-
                 return false;
             }
 
         },
-        async addContact({ commit }, username) {
+        async addContact({ commit }, contactId) {
             try {
                 const token = TokenService.getToken();
-                const response = await UserService.addContact(ApiService.ADD_CONTACT_URL, token, username);
-                commit('SET_user', response)
+                const response = await UserService.addContact(ApiService.ADD_CONTACT_URL, token, contactId);
+                let socket = await this._vm.$socket.emit('ADD_CONTACT', {
+                    user: this.getters.user.currentUser.username,
+                    contact: contactId
+                });
+                commit('SET_user', response);
                 commit('SET_searchStatus', false);
                 return true;
             } catch (error) {
@@ -256,7 +284,7 @@ export default new Vuex.Store({
         async removeContact({ commit }, contactId) {
             try {
                 console.log(contactId);
-                if(contactId == this.getters.chatId){
+                if (contactId == this.getters.chatId) {
                     commit('SET_chatStatus', false);
                 }
                 const token = TokenService.getToken();
@@ -271,36 +299,47 @@ export default new Vuex.Store({
             }
         },
         async openChat({ commit }, data) {
-            commit('SET_chatStatus', true);
-            commit('SET_chatAvatar', data.avatar);
-            commit('SET_chatName', data.name);
-            const token = TokenService.getToken();
-            const chatData = await UserService.chatRequest(ApiService.CHAT_URL, token, data.id);
-            console.log(chatData);
-            commit('SET_chatContent', chatData.messages);
-            commit('SET_chatId', chatData.chatId);
-            console.log(this.getters.chatId);
-            return true;
-        },
-        async sendMessage({ commit }, message) {
-            const messageData = {
-                message,
-                chatId: this.getters.chatId
+            try {
+                commit('SET_chatStatus', true);
+                commit('SET_chatAvatar', data.avatar);
+                commit('SET_chatName', data.name);
+                const token = TokenService.getToken();
+                const chatData = await ChatService.chatRequest(ApiService.CHAT_URL, token, data.id);
+                console.log(chatData);
+                let socket = await this._vm.$socket.emit('JOIN_ROOM', {
+                    user: data.id,
+                    chat: chatData.chatId
+                });
+                commit('SET_chatContent', chatData.messages);
+                commit('SET_chatId', chatData.chatId);
+                console.log(this.getters.chatId);
+                return true;
+            } catch (error) {
+                if (error instanceof AuthenticationError) {
+                    console.log(error.message)
+                }
+                return false;
             }
-            console.log(this.getters.chatId)
+
+        },
+        async sendMessage({ commit }, messageData) {
             const token = TokenService.getToken();
-            const updatedChat = await UserService.sendMessage(ApiService.MESSAGES_URL, token, messageData);
+            console.log('got messageData');
+            const updatedChat = await ChatService.sendMessage(ApiService.MESSAGES_URL, token, messageData);
             console.log(updatedChat)
-            commit('ADD_Message', updatedChat.messages);
+            commit('ADD_Message', updatedChat.message);
             return true;
         },
         async logout({ commit }) {
-            UserService.logout();
             //remove the token from store
-            commit('SET_authenticationSuccess');
+            UserService.logout();
             commit('SET_logoutSuccess');
+            commit('SET_chatContent');
+            commit('SET_chatStatus');
+            commit('SET_authenticationSuccess');
             commit('SET_searchStatus');
             commit('SET_searchedData');
+            commit('SET_ActiveUsers');      
             router.push('/login');
         }
     },

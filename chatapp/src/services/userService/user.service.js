@@ -1,13 +1,7 @@
-import { TokenService } from './storage.service';
-import { ApiService } from './api.service';
+import { TokenService } from '../storage.service';
+import { ApiService } from '../api.service';
+import AuthenticationError from '../error.service'
 
-class AuthenticationError extends Error {
-    constructor(message) {
-        super(message),
-            this.name = this.constructor.name,
-            this.message = message
-    }
-}
 
 const UserService = {
     authRequest: async function (url, creditentials) { 
@@ -51,24 +45,11 @@ const UserService = {
             throw new AuthenticationError(error.response.data.message);
         }
     },
-    searchData: async function (url, searchData){
+    addContact: async function (url, token, userId){
         const requestData = {
             method: 'post',
             url: url,
-            data: searchData
-        }
-        try {
-            const response = await ApiService.customRequest(requestData);
-            return response.data;
-        } catch (error) {
-            throw new AuthenticationError(error.response.data.message);
-        }
-    },
-    addContact: async function (url, token, username){
-        const requestData = {
-            method: 'post',
-            url: url,
-            data: { token, username }
+            data: { token, userId }
         }
         try {
             const response = await ApiService.customRequest(requestData);
@@ -90,32 +71,6 @@ const UserService = {
             throw new AuthenticationError(error.response.data.message);
         }
     },
-    chatRequest: async function (url, token, contactId){
-        const requestData = {
-            method: 'post',
-            url: url,
-            data: { token, contactId }
-        }
-        try {
-            const response = await ApiService.customRequest(requestData);
-            return response.data;
-        } catch (error) {
-        
-        }
-    },
-    sendMessage: async function(url, token, messageData) {
-        const requestData = {
-            method: 'post',
-            url: url,
-            data: { token, messageData }
-        }
-        try {
-            const response = await ApiService.customRequest(requestData);
-            return response.data;
-        } catch (error) {
-        
-        }
-    },
     logout: async function () {
         TokenService.removeToken();
     }
@@ -123,4 +78,4 @@ const UserService = {
 
 export default UserService;
 
-export { UserService, AuthenticationError};
+export { UserService };
