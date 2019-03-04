@@ -140,7 +140,6 @@ export default {
     changeForm() {
       this.logingIn = !this.logingIn; //change formular
       Object.keys(this.user).forEach(v => this.user[v] = ''); //clear the fields
-      this.errors.items = []; //disable the error triger
     },
     isValid(){
       return this.$validator.validate();
@@ -164,7 +163,7 @@ export default {
     },
     toggleAvatarDialog(){
       this.SET_avatarDialog(!this.avatarDialog);
-    }
+    },
   }
 };
 </script>

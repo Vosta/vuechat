@@ -26,7 +26,7 @@
         </v-tabs>
         <v-tabs-items v-model="tablele" >
           <v-tab-item >
-            <contact-list :contacts="user.contacts"></contact-list>
+            <contact-list></contact-list>
           </v-tab-item>
           <v-tab-item>
             <chat-list :chats="user.chats"></chat-list>

@@ -6,7 +6,7 @@
 </template>
 
 <script>
-import { mapGetters, mapMutations } from "vuex";
+import { mapGetters, mapMutations, mapActions } from "vuex";
 import chatPanel from "../components/home/chatPanel/chatPanel.vue";
 import chatView from "../components/home/chatView/chatView.vue";
 export default {
@@ -21,17 +21,18 @@ export default {
     ...mapGetters(["chatStatus", "loggedIn"])
   },
   methods: {
-    ...mapMutations(["SET_ActiveUsers"])
+    ...mapMutations(["SET_user", "SET_contactStatus"]),
   },
   mounted() {
-    if (this.loggedIn) {
-      this.$socket.on("activeUser", data => {
-        console.log('hello')
-        console.log(data);
-        this.SET_ActiveUsers(data);
-      });
-    }
-  }
+    this.$socket.on('ActiveUsers', data => {
+      console.log(data)
+      this.SET_user(data)
+    });
+    this.$socket.on('contactStatusChanged', contact => {
+      this.SET_contactStatus(contact);
+    });
+    
+  },
 };
 </script>
 <style scoped>

@@ -29,31 +29,62 @@ app.use('/user', user);
 
 const io = require('socket.io')(server);
 
-var currentConnections = {};
-var currentUserId = '';
+var currentConnections = [];
+var activeUsersIds = [];
 
 io.on("connection", function (socket) {
-  console.log('User Connected');
+  currentConnections.push({
+    socketId: socket.id
+  });
 
   socket.on('disconnect', async () => {
-    console.log('User Disconnected');
-    delete currentConnections[currentUserId];
+    for (let i = 0; i < currentConnections.length; i++) {
+      if (currentConnections[i].socketId === socket.id) {
+        socket.broadcast.emit('contactStatusChanged', {id: currentConnections[i].userId, status: false});
+        if(activeUsersIds.indexOf(currentConnections[i].userId) > -1){
+          activeUsersIds.splice(activeUsersIds.indexOf(currentConnections[i].userId), 1);
+        }
+        currentConnections.splice(i, 1);
+        break;
+      };
+    }
+    console.log('User disconnected');
   });
 
-  socket.on('userLoggedIn', async (user) => {
-    currentConnections[user._id] = { 
-      username: user.username,
+  socket.on('userLoggedIn', (data) => {
+    //let other sokckets know that this socket loged in
+    for (let i of currentConnections.keys()) {
+      if (currentConnections[i].socketId === socket.id) {
+        currentConnections[i].userId = data.user._id;
+        activeUsersIds.push(data.user._id);
+        break;
+      };
     }
-    console.log(currentConnections)
-    socket.broadcast.emit('activeUser', user);
+    socket.broadcast.emit('contactStatusChanged', {id: data.user._id, status: true});
+    //get active statuses of other sockets
+    for (let i of data.user.contacts.keys()) {
+      if (activeUsersIds.indexOf(data.contacts[i]._id) > -1) {
+        data.contacts[i].active = true;
+      } else {
+        data.contacts[i].active = false;
+      };
+    }
+    socket.emit('ActiveUsers', data);
+  });
+
+  socket.on('userLoggedOut', (user) => {
+    //combine this with user disconnect
+    for (let i of currentConnections.keys()) {
+      if (currentConnections[i].userId === user._id) {
+        socket.broadcast.emit('contactStatusChanged', {id: user._id, status: false});
+        delete currentConnections[i].userId; //delete userId key from currentConnections
+        activeUsersIds.splice(activeUsersIds.indexOf(user._id), 1);
+        break;
+      };
+    }
   })
 
-  socket.on('ADD_CONTACT', async (data) => {
-    console.log(data);
-
-  });
-
-  socket.on('JOIN_ROOM', async (data) => {
+  socket.on('JOIN_ROOM', (data) => {
     let room = data.chat;
     if (socket.room) {
       socket.leave(socket.room);
@@ -64,7 +95,7 @@ io.on("connection", function (socket) {
   });
 
 
-  socket.on('message', async (data) => {
+  socket.on('message', (data) => {
     let room = data.chatId;
     console.log('sending message to room', room)
     socket.broadcast.to(room).emit('messageSent', {

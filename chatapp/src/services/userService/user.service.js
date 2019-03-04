@@ -12,7 +12,6 @@ const UserService = {
         }
         try {
             const response = await ApiService.customRequest(requestData);
-            console.log(response)
             TokenService.saveToken(response.data.token);
             return response.data;
         } catch (error) {
@@ -39,7 +38,6 @@ const UserService = {
         }
         try {
             const response = await ApiService.customRequest(requestData);
-            console.log(response);
             return response.data;
         } catch (error) {
             throw new AuthenticationError(error.response.data.message);
@@ -77,5 +75,3 @@ const UserService = {
 }
 
 export default UserService;
-
-export { UserService };

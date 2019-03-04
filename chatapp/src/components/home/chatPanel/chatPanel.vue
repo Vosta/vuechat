@@ -20,27 +20,27 @@
     <v-layout class="tabsLayout">
       <chat-navigation class="chatNavigation"></chat-navigation>
     </v-layout>
-
   </div>
 </template>
 
 <script>
-import { mapGetters, mapActions } from "vuex";
-import chatNavigation from './chatNavigation.vue'
+import { mapGetters, mapActions, mapMutations } from "vuex";
+import chatNavigation from "./chatNavigation.vue";
 export default {
   components: {
     chatNavigation
   },
   data() {
-    return {
-    };
+    return {};
   },
   computed: {
     ...mapGetters(["user"])
   },
   methods: {
-    ...mapActions(["logout"])
+    ...mapActions(["logout"]),
+    ...mapMutations(["SET_ActiveUsers", "SET_ActiveContacts"])
   },
+  
 };
 </script>
 
@@ -60,7 +60,7 @@ export default {
   box-shadow: 0px 3px 1px -2px rgba(0, 0, 0, 0.2),
     0px 2px 2px 0px rgba(0, 0, 0, 0.14), 0px 1px 5px 0px rgba(0, 0, 0, 0.12);
 }
-.chatNavigation{
+.chatNavigation {
   width: 100%;
 }
 .tabs {

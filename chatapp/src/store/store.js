@@ -1,12 +1,13 @@
 import Vue from 'vue'
 import Vuex from 'vuex'
 import router from '../router'
-import { UserService } from '../services/userService/user.service';
+import UserService from '../services/userService/user.service';
 import { ChatService } from '../services/userService/chat.service';
 import { SearchService } from '../services/userService/search.service';
-import { TokenService } from '../services/storage.service'
+import { TokenService } from '../services/storage.service';
 import { ApiService } from '../services/api.service';
 import AuthenticationError from '../services/error.service';
+import defaultState from './defaultState'
 Vue.use(Vuex)
 
 export default new Vuex.Store({
@@ -28,7 +29,6 @@ export default new Vuex.Store({
             },
             contacts: []
         },
-        activeUsers: {},
         search: {
             searchStatus: false,
             searchValue: '',
@@ -101,13 +101,17 @@ export default new Vuex.Store({
         },
         activeUsers: (state) => {
             return state.activeUsers
-        }
+        },
+        allActiveContacts: (state) => {
+            return state.activeContacts
+        } 
     },
     mutations: {
 
         SET_authenticationRequest(state) {
             state.auth.authenticating = true;
             state.auth.authenticationError = '';
+            state = defaultState;
         },
 
         SET_authenticationSuccess(state, accessToken) {
@@ -128,14 +132,6 @@ export default new Vuex.Store({
                 currentUser: data.user,
                 contacts: data.contacts
             }
-        },
-        SET_ActiveUsers (state, userData) {
-            if(userData){
-                state.activeUsers[userData._id] = {
-                    username: userData.username
-                }
-            }
-            
         },
         SET_avatars(state, avatars) {
             state.avatarDialog.avatars = avatars;
@@ -180,6 +176,19 @@ export default new Vuex.Store({
         ADD_Message(state, payload) {
             console.log(payload)
             state.chat.messages.push(payload);
+        },
+        SET_ActiveUsers(state, activeUsers){
+            console.log(activeUsers)
+        },
+        SET_contactStatus(state, contact){
+            for (const index of state.user.contacts.keys()) {
+                console.log('lele')
+                if(state.user.contacts[index]._id === contact.id){
+                    console.log(contact.status)
+                    state.user.contacts[index].active = contact.status;
+                    break;
+                }
+            }          
         }
     },
     actions: {
@@ -187,13 +196,9 @@ export default new Vuex.Store({
             try {
                 const token = TokenService.getToken();
                 const data = await UserService.contactsRequest(ApiService.INFO_URL, token);
-                console.log(data);
-                const socketData = {
-                    username: data.user.username,
-                    _id: data.user._id
-                }
-                this._vm.$socket.emit('userLoggedIn', socketData);
                 commit('SET_user', data);
+                await this._vm.$socket.emit('userLoggedIn', data);
+                         
                 return true;
             } catch (error) {
                 console.log(error);
@@ -333,13 +338,13 @@ export default new Vuex.Store({
         async logout({ commit }) {
             //remove the token from store
             UserService.logout();
+            this._vm.$socket.emit('userLoggedOut', this.getters.user.currentUser);
             commit('SET_logoutSuccess');
             commit('SET_chatContent');
             commit('SET_chatStatus');
             commit('SET_authenticationSuccess');
             commit('SET_searchStatus');
-            commit('SET_searchedData');
-            commit('SET_ActiveUsers');      
+            commit('SET_searchedData');    
             router.push('/login');
         }
     },

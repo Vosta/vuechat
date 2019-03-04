@@ -1,15 +1,12 @@
 <template>
   <div>
-    <v-list-tile v-for="contact in contacts" avatar class="contact" :key="contact.username">
-      <v-badge :color="getActiveColor(contact._id)" bottom overlap class="activeBadge">
-        <template v-slot:badge>
-          <v-icon class="activeIcon">blank</v-icon>
-        </template>
-        <v-avatar class="avatarImage">
-          <img :src="contact.avatar">
-        </v-avatar>
-      </v-badge>
-
+    <v-list-tile v-for="contact in user.contacts" avatar class="contact" :key="contact.username">
+      <v-list-tile-avatar class="avatarImage">
+        <img :src="contact.avatar">
+      </v-list-tile-avatar>
+      <v-list-tile-action class="avatarImage">
+        <span class="bubble" :class="{ bubbleActive: contact.active }"></span>
+      </v-list-tile-action>
       <v-list-tile-content style="margin-left: 10px">
         <v-list-tile-title v-html="contact.username"></v-list-tile-title>
       </v-list-tile-content>
@@ -35,23 +32,14 @@ export default {
     return {};
   },
   computed: {
-    ...mapGetters(["activeUsers"]),
+    ...mapGetters(["user"])
   },
-  props: ["contacts"],
   methods: {
     ...mapActions(["removeContact", "openChat"]),
-    getActiveColor(contactId){
-      console.log(contactId)
-      if(this.activeUsers[contactId]){
-        return 'green'
-      }
-      return 'grey'
-    }
-  }
+  },
 };
 </script>
 <style scoped>
-
 .contact:hover {
   background-color: rgba(0, 0, 0, 0.1);
   cursor: pointer;
@@ -64,14 +52,24 @@ export default {
   margin-right: 10px;
   font-size: 28px;
 }
-.activeBadge{
-  padding-right: 7px;
+.avatarImage{}
+.bubble{
+  border-radius: 100%;
+  width: 15px;
+  height: 15px;
+  position: relative;
+  left: -30px;
+  bottom: -15px;
+  background-color: grey;
+}
+.bubbleActive{
+  background-color: green;
 }
 .chat {
   color: green;
 }
-.notActive{
-  color: grey
+.notActive {
+  color: grey;
 }
 .delete {
   color: rgb(107, 20, 20);
