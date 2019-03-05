@@ -4,10 +4,10 @@
       <v-list-tile-avatar class="avatarImage">
         <img :src="contact.avatar">
       </v-list-tile-avatar>
-      <v-list-tile-action class="avatarImage">
-        <span class="bubble" :class="{ bubbleActive: contact.active }"></span>
-      </v-list-tile-action>
-      <v-list-tile-content style="margin-left: 10px">
+
+      <span class="bubble" :class="{ bubbleActive: contact.active }"></span>
+
+      <v-list-tile-content>
         <v-list-tile-title v-html="contact.username"></v-list-tile-title>
       </v-list-tile-content>
 
@@ -52,7 +52,6 @@ export default {
   margin-right: 10px;
   font-size: 28px;
 }
-.avatarImage{}
 .bubble{
   border-radius: 100%;
   width: 15px;

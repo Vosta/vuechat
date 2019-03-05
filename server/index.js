@@ -29,60 +29,47 @@ app.use('/user', user);
 
 const io = require('socket.io')(server);
 
-var currentConnections = [];
-var activeUsersIds = [];
+var connections = {};
 
 io.on("connection", function (socket) {
-  currentConnections.push({
-    socketId: socket.id
+  //connections={}
+  //temporary function
+  function userDisconnect() {
+    if(connections[socket.id]){
+      let userId = connections[socket.id].userId;
+      socket.broadcast.emit('contactStatusChanged', { id: userId, status: false });
+      delete connections[socket.id];
+      console.log('User disconnected');
+    } 
+  }
+  //find a solution for this
+  socket.on('disconnect', (username) => {
+    userDisconnect();
   });
-
-  socket.on('disconnect', async () => {
-    for (let i = 0; i < currentConnections.length; i++) {
-      if (currentConnections[i].socketId === socket.id) {
-        socket.broadcast.emit('contactStatusChanged', {id: currentConnections[i].userId, status: false});
-        if(activeUsersIds.indexOf(currentConnections[i].userId) > -1){
-          activeUsersIds.splice(activeUsersIds.indexOf(currentConnections[i].userId), 1);
-        }
-        currentConnections.splice(i, 1);
-        break;
-      };
-    }
-    console.log('User disconnected');
-  });
+  socket.on('userDisconnect', () => {
+    userDisconnect();
+  })
 
   socket.on('userLoggedIn', (data) => {
-    //let other sokckets know that this socket loged in
-    for (let i of currentConnections.keys()) {
-      if (currentConnections[i].socketId === socket.id) {
-        currentConnections[i].userId = data.user._id;
-        activeUsersIds.push(data.user._id);
-        break;
-      };
+    //put conntact in activeConnections array
+    connections[socket.id] = {
+      userId: data.user._id
     }
-    socket.broadcast.emit('contactStatusChanged', {id: data.user._id, status: true});
+    socket.broadcast.emit('contactStatusChanged', { id: data.user._id, status: true });
     //get active statuses of other sockets
-    for (let i of data.user.contacts.keys()) {
-      if (activeUsersIds.indexOf(data.contacts[i]._id) > -1) {
-        data.contacts[i].active = true;
-      } else {
-        data.contacts[i].active = false;
-      };
-    }
+    data.contacts.filter(contact => {
+      Object.keys(connections).find(key => {
+        if (connections[key].userId === contact._id) {
+          return contact.active = true;
+        } else {
+          return contact.active = false;
+        };
+      });
+    })
+    console.log(connections);
     socket.emit('ActiveUsers', data);
   });
 
-  socket.on('userLoggedOut', (user) => {
-    //combine this with user disconnect
-    for (let i of currentConnections.keys()) {
-      if (currentConnections[i].userId === user._id) {
-        socket.broadcast.emit('contactStatusChanged', {id: user._id, status: false});
-        delete currentConnections[i].userId; //delete userId key from currentConnections
-        activeUsersIds.splice(activeUsersIds.indexOf(user._id), 1);
-        break;
-      };
-    }
-  })
 
   socket.on('JOIN_ROOM', (data) => {
     let room = data.chat;
@@ -94,12 +81,12 @@ io.on("connection", function (socket) {
     console.info(socket.id + ' joined room ' + room, socket.room);
   });
 
-
   socket.on('message', (data) => {
-    let room = data.chatId;
-    console.log('sending message to room', room)
+    const room = data.chatId;
+    console.log(data);
     socket.broadcast.to(room).emit('messageSent', {
-      message: data.message
+      message: data.message,
+      chatId: room
     });
   });
 

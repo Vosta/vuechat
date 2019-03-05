@@ -70,9 +70,19 @@ var searchService = {
     }
 }
 var chatService = {
+    refreshChats: (req, res, next) => {
+        const currentUserId = req.data.user._id.toString();
+        chats.find({ participents: currentUserId}).then( chats => {
+            req.data.chats = chats;
+            next();
+        }).catch(error => {
+            console.log(error)
+            sendError(res, 500, 'Problem connecting to server', next);
+        });
+    },
     viewChat: (req, res, next) => {
         const currentUser = req.data.user;
-        const chatParticipents = [currentUser._id.toString(), req.body.contactId]
+        const chatParticipents = [currentUser._id.toString(), req.body.contactId];
         chats.findOne({ participents: { $all: chatParticipents } }).then(chat => {
             if (chat) {
                 //get chat data
@@ -139,13 +149,13 @@ var chatService = {
 
 
 function sendData(req, res) {
-    console.log('Sent Data');
+    console.log(req.data);
     res.send(req.data);
 }
 
 router.get('/avatars', applicationStatics.avatarData, sendData);
 
-router.post('/data', verify, contactService.refreshContacts, sendData);
+router.post('/data', verify, contactService.refreshContacts, chatService.refreshChats, sendData);
 
 router.post('/contact/add', verify, contactService.addContact, contactService.refreshContacts, sendData);
 

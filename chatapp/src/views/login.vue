@@ -22,7 +22,7 @@
 
                 <v-flex class="authWrapper">
 
-                  <div v-if="logingIn" class="logo">
+                  <div v-if="logginIn" class="logo">
                     <img src="../assets/logo.png">
                   </div>
 
@@ -34,7 +34,7 @@
                     <v-flex></v-flex>
                   </avatar-picker>
                 
-                  <v-form v-else class="authform">
+                  <v-form v-else class="authform" @submit.prevent="">
                     <v-text-field
                       prepend-icon="person"
                       name="username"
@@ -62,7 +62,7 @@
                       leave-active-class="animated fadeOut"
                     >
                       <v-text-field
-                        v-if="!logingIn"
+                        v-if="!logginIn"
                         class="extraFieldAnimation"
                         prepend-icon="lock"
                         name="confirmpassword"
@@ -74,13 +74,13 @@
                       ></v-text-field>
                     </transition>
 
-                    <v-card-actions v-if="logingIn">
+                    <v-card-actions v-if="logginIn">
                       <p class="signUpText">
                         Don't have an account?
                         <span class="signUpLink" @click="changeForm()">Sign Up</span>
                       </p>
                       <v-spacer></v-spacer>
-                      <v-btn color="primary" @click="handleLogIn()">Login</v-btn>
+                      <v-btn color="primary" type="submit" @click="handleLogIn()">Login</v-btn>
                     </v-card-actions>
 
                     <v-card-actions transition="fade-transition" v-else>
@@ -89,7 +89,7 @@
                         <span class="signUpLink" @click="changeForm()">Log In</span>
                       </p>
                       <v-spacer></v-spacer>
-                      <v-btn color="primary" @click="handleSignUp()">Sign Up</v-btn>
+                      <v-btn color="primary" type="submit" @click="handleSignUp()">Sign Up</v-btn>
                     </v-card-actions>
                   </v-form>
                 </v-flex>
@@ -120,7 +120,7 @@ export default {
       password: "",
       confirmpassword: "",
     },
-    logingIn: true,
+    logginIn: true,
   }),
   computed: {
     ...mapGetters(["authenticationError","currentAvatar", "avatarDialog"]),
@@ -135,10 +135,10 @@ export default {
   },
   methods: {
     ...mapActions(["login", "signUp"]),
-    ...mapMutations(["SET_avatarDialog", "SET_authenticationError"]),
+    ...mapMutations(["SET_avatarDialog", "SET_authenticationError", "SET_DefaultState"]),
 
     changeForm() {
-      this.logingIn = !this.logingIn; //change formular
+      this.logginIn = !this.logginIn; //change formular
       Object.keys(this.user).forEach(v => this.user[v] = ''); //clear the fields
     },
     isValid(){
@@ -164,7 +164,10 @@ export default {
     toggleAvatarDialog(){
       this.SET_avatarDialog(!this.avatarDialog);
     },
-  }
+  },
+  mounted() {
+    this.SET_DefaultState()
+  },
 };
 </script>
 

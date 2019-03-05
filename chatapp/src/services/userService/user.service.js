@@ -1,6 +1,6 @@
 import { TokenService } from '../storage.service';
 import { ApiService } from '../api.service';
-import AuthenticationError from '../error.service'
+import AuthenticationError from '../error.service';
 
 
 const UserService = {
@@ -12,6 +12,7 @@ const UserService = {
         }
         try {
             const response = await ApiService.customRequest(requestData);
+            console.log(response)
             TokenService.saveToken(response.data.token);
             return response.data;
         } catch (error) {

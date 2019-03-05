@@ -21,7 +21,7 @@ export default {
     ...mapGetters(["chatStatus", "loggedIn"])
   },
   methods: {
-    ...mapMutations(["SET_user", "SET_contactStatus"]),
+    ...mapMutations(["SET_user", "SET_contactStatus", "SET_DefaultState"])
   },
   mounted() {
     this.$socket.on('ActiveUsers', data => {
@@ -31,7 +31,6 @@ export default {
     this.$socket.on('contactStatusChanged', contact => {
       this.SET_contactStatus(contact);
     });
-    
   },
 };
 </script>

@@ -1,6 +1,6 @@
 <template>
   <div>
-    <v-list-tile avatar v-for="chat in chats" :key="chat.name">
+    <v-list-tile avatar v-for="chat in user.chats" :key="chat.name">
       <v-list-tile-avatar>
         <img :src="chat.avatar">
       </v-list-tile-avatar>
@@ -17,12 +17,15 @@
 </template>
 
 <script>
+import { mapActions, mapGetters, mapMutations} from 'vuex';
 export default {
   data() {
     return {
 
     };
   },
-  props: ["chats"]
+  computed: {
+    ...mapGetters(["user"])
+  },
 };
 </script>

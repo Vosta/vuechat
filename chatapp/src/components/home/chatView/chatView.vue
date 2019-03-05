@@ -45,7 +45,7 @@ export default {
   },
   methods: {
     ...mapActions(["logout", "sendMessage"]),
-    ...mapMutations(["ADD_Message"]),
+    ...mapMutations(["SET_Message"]),
     
     messageByWho(userId) {
       if (userId === this.user.currentUser._id) {
@@ -56,7 +56,7 @@ export default {
   },
   mounted() {
     this.$socket.on("messageSent", data => {
-      this.ADD_Message(data.message);
+      this.SET_Message(data.message);
     });
   },
   updated() {

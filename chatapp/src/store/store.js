@@ -27,7 +27,8 @@ export default new Vuex.Store({
                 username: '',
                 avatar: ''
             },
-            contacts: []
+            contacts: [],
+            chats: []
         },
         search: {
             searchStatus: false,
@@ -107,11 +108,14 @@ export default new Vuex.Store({
         } 
     },
     mutations: {
-
+        SET_DefaultState(state){
+            console.log('def', defaultState)
+            state = defaultState;
+            console.log(state)
+        },
         SET_authenticationRequest(state) {
             state.auth.authenticating = true;
             state.auth.authenticationError = '';
-            state = defaultState;
         },
 
         SET_authenticationSuccess(state, accessToken) {
@@ -130,7 +134,8 @@ export default new Vuex.Store({
         SET_user(state, data) {
             state.user = {
                 currentUser: data.user,
-                contacts: data.contacts
+                contacts: data.contacts,
+                chats: data.chats
             }
         },
         SET_avatars(state, avatars) {
@@ -173,9 +178,12 @@ export default new Vuex.Store({
         SET_socketId(state, value) {
             state.chat.socketId = value;
         },
-        ADD_Message(state, payload) {
-            console.log(payload)
+        SET_Message(state, payload) {
             state.chat.messages.push(payload);
+            if(state.chat.chatId !== payload.chatId){
+                //give that chat an unread message badge
+                //give the whole chat tab an unread message tab
+            }
         },
         SET_ActiveUsers(state, activeUsers){
             console.log(activeUsers)
@@ -332,13 +340,14 @@ export default new Vuex.Store({
             console.log('got messageData');
             const updatedChat = await ChatService.sendMessage(ApiService.MESSAGES_URL, token, messageData);
             console.log(updatedChat)
-            commit('ADD_Message', updatedChat.message);
+            commit('SET_Message', updatedChat.message);
             return true;
         },
         async logout({ commit }) {
             //remove the token from store
             UserService.logout();
-            this._vm.$socket.emit('userLoggedOut', this.getters.user.currentUser);
+            console.log('gona disconnect')
+            this._vm.$socket.emit('userDisconnect');
             commit('SET_logoutSuccess');
             commit('SET_chatContent');
             commit('SET_chatStatus');
