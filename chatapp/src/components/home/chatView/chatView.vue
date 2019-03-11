@@ -1,15 +1,24 @@
 <template>
   <div>
     <chat-toolbar :name="chatName" :avatar="chatAvatar" class="chatToolbar"></chat-toolbar>
-    <div class="chatWrapper" >
+    <div class="chatWrapper">
       <div v-if="chatStatus" class="chatDisplay" ref="chatDisplayId">
-        <div class="divrow" v-for="(message, index) in chatMessages" :key="index">
-          <v-flex v-if="message.content" class="from-contact" :class="messageByWho(message.by)">
-            <p class="chatMessage">{{ message.content }}</p>
-          </v-flex>
+        <div v-for="(message, index) in chatMessages" :key="index">
+          <div v-if="message.info" class="divrow">
+            <v-flex class="infoMessageWrapper">
+              <p :class="{infoMessage: message.info}">{{ message.content }}</p>
+            </v-flex>
+          </div>
+          <div v-else>
+            <v-flex class="from-contact" :class="messageByWho(message.by)">
+              <p class="chatMessage">{{ message.content }}</p>
+            </v-flex>
+          </div>
         </div>
       </div>
+
       <chat-keyboard class="chatKeyboard"></chat-keyboard>
+
     </div>
   </div>
 </template>
@@ -28,13 +37,13 @@ export default {
     return {
       typing: {
         status: false,
-        message: ''
-      }
-    }
+        message: ""
+      },
+      notification: ""
+    };
   },
   computed: {
     ...mapGetters([
-      "dialogStatus",
       "chatStatus",
       "chatName",
       "chatAvatar",
@@ -46,7 +55,7 @@ export default {
   methods: {
     ...mapActions(["logout", "sendMessage"]),
     ...mapMutations(["SET_Message"]),
-    
+
     messageByWho(userId) {
       if (userId === this.user.currentUser._id) {
         return "from-user";
@@ -55,13 +64,20 @@ export default {
     }
   },
   mounted() {
-    this.$socket.on("messageSent", data => {
-      this.SET_Message(data.message);
+    this.$socket.on("recieveMessage", data => {
+      this.SET_Message(data);
+    });
+    this.$socket.on("userEnteredOrLeft", message => {
+      const userJoinedMessage = {
+        content: message,
+        info: true
+      };
+      this.SET_Message({message: userJoinedMessage});
     });
   },
   updated() {
     this.$refs.chatDisplayId.scrollTop = this.$refs.chatDisplayId.scrollHeight;
-  },
+  }
 };
 </script>
 <style scoped>
@@ -72,7 +88,7 @@ export default {
   position: absolute;
   width: 70%;
   left: 50%;
-  transform: translate(-50%)
+  transform: translate(-50%);
 }
 .chatWrapper {
   height: 90%;
@@ -107,6 +123,14 @@ export default {
   font-size: 22px;
   margin-top: 10px;
   padding: 10px 35px 10px 35px;
+}
+.infoMessage {
+  width: max-content;
+  margin: auto;
+  margin-top: 10px;
+  font-size: 15px;
+  color: #2196F3;
+  padding: 0;
 }
 .divrow {
   width: 100%;

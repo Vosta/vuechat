@@ -10,11 +10,12 @@ var verify = async function (req, res, next) {
         } else {
             users.findOne({
                 username: decoded.username
-            }, { username: 1, avatar: 1, contacts: 1 })
+            }, { username: 1, avatar: 1, contacts: 1, contactRequests: 1 })
             .then(async user => {
+                console.log(user)
                 req.data = {
                     user: user,
-                    contacts: []
+                    contacts: user.contacts
                 };
                 
                 next();

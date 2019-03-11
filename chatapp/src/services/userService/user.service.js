@@ -44,11 +44,11 @@ const UserService = {
             throw new AuthenticationError(error.response.data.message);
         }
     },
-    addContact: async function (url, token, userId){
+    addContact: async function (url, token, data){
         const requestData = {
             method: 'post',
             url: url,
-            data: { token, userId }
+            data: { token, data }
         }
         try {
             const response = await ApiService.customRequest(requestData);

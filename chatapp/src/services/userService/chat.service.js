@@ -2,11 +2,11 @@ import { TokenService } from '../storage.service';
 import { ApiService } from '../api.service';
 
 const ChatService = {
-    chatRequest: async function (url, token, contactId){
+    chatRequest: async function (url, token, data){
         const requestData = {
             method: 'post',
             url: url,
-            data: { token, contactId }
+            data: { token, data }
         }
         try {
             const response = await ApiService.customRequest(requestData);

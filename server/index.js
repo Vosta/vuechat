@@ -33,17 +33,22 @@ var connections = {};
 
 io.on("connection", function (socket) {
   //connections={}
-  //temporary function
+  //temporary functions
   function userDisconnect() {
-    if(connections[socket.id]){
+    if (connections[socket.id]) {
       let userId = connections[socket.id].userId;
       socket.broadcast.emit('contactStatusChanged', { id: userId, status: false });
       delete connections[socket.id];
       console.log('User disconnected');
-    } 
+    }
   }
-  //find a solution for this
-  socket.on('disconnect', (username) => {
+  function leaveRoom() {
+    const user = connections[socket.id];
+    socket.broadcast.to(socket.room).emit('userEnteredOrLeft', `${user.username} left the chat`);
+    socket.leave(socket.room);
+  }
+  //find a solution to combine these
+  socket.on('disconnect', () => {
     userDisconnect();
   });
   socket.on('userDisconnect', () => {
@@ -53,7 +58,8 @@ io.on("connection", function (socket) {
   socket.on('userLoggedIn', (data) => {
     //put conntact in activeConnections array
     connections[socket.id] = {
-      userId: data.user._id
+      userId: data.user._id,
+      username: data.user.username
     }
     socket.broadcast.emit('contactStatusChanged', { id: data.user._id, status: true });
     //get active statuses of other sockets
@@ -72,19 +78,21 @@ io.on("connection", function (socket) {
 
 
   socket.on('JOIN_ROOM', (data) => {
-    let room = data.chat;
+    const room = data.chatId;
+    //leave the current room if it exists
     if (socket.room) {
-      socket.leave(socket.room);
+      leaveRoom(); 
     }
+    //join the room
     socket.join(room);
     socket.room = room;
+    socket.broadcast.to(room).emit('userEnteredOrLeft', `${data.user.username} entered the chat`);
     console.info(socket.id + ' joined room ' + room, socket.room);
   });
-
+  
   socket.on('message', (data) => {
     const room = data.chatId;
-    console.log(data);
-    socket.broadcast.to(room).emit('messageSent', {
+    socket.broadcast.to(room).emit('recieveMessage', {
       message: data.message,
       chatId: room
     });

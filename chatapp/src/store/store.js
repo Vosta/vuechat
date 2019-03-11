@@ -28,7 +28,8 @@ export default new Vuex.Store({
                 avatar: ''
             },
             contacts: [],
-            chats: []
+            contactRequests: [],
+            chats: [],
         },
         search: {
             searchStatus: false,
@@ -36,11 +37,7 @@ export default new Vuex.Store({
             searchedData: []
         },
         chat: {
-            messages: [{
-                content: '',
-                by: '',
-                date: 0
-            }],
+            messages: [],
             socketId: '',
             chatStatus: false,
             chatId: '',
@@ -79,7 +76,6 @@ export default new Vuex.Store({
             return state.avatarDialog.avatars;
         },
         currentAvatar: (state) => {
-            console.log(state.avatarDialog.currentAvatar)
             return state.avatarDialog.currentAvatar;
         },
         chatStatus: (state) => {
@@ -105,13 +101,11 @@ export default new Vuex.Store({
         },
         allActiveContacts: (state) => {
             return state.activeContacts
-        } 
+        }
     },
     mutations: {
-        SET_DefaultState(state){
-            console.log('def', defaultState)
+        SET_DefaultState(state) {
             state = defaultState;
-            console.log(state)
         },
         SET_authenticationRequest(state) {
             state.auth.authenticating = true;
@@ -135,8 +129,12 @@ export default new Vuex.Store({
             state.user = {
                 currentUser: data.user,
                 contacts: data.contacts,
-                chats: data.chats
+                chats: data.chats,
+                contactRequests: data.contactRequests
             }
+        },
+        SET_userContacts(state, payload){
+            state.user.contacts = payload;
         },
         SET_avatars(state, avatars) {
             state.avatarDialog.avatars = avatars;
@@ -160,6 +158,9 @@ export default new Vuex.Store({
         SET_searchedData(state, value) {
             state.search.searchedData = value;
         },
+        SET_chats(state, payload){
+            state.user.chats = payload;
+        },
         SET_chatStatus(state, value) {
             state.chat.chatStatus = value;
         },
@@ -179,24 +180,23 @@ export default new Vuex.Store({
             state.chat.socketId = value;
         },
         SET_Message(state, payload) {
-            state.chat.messages.push(payload);
-            if(state.chat.chatId !== payload.chatId){
+            console.log(payload)
+            state.chat.messages.push(payload.message);
+            /*if (state.chat.chatId !== payload.chatId) {
                 //give that chat an unread message badge
                 //give the whole chat tab an unread message tab
-            }
+            }*/
         },
-        SET_ActiveUsers(state, activeUsers){
-            console.log(activeUsers)
-        },
-        SET_contactStatus(state, contact){
+        SET_contactStatus(state, contact) {
             for (const index of state.user.contacts.keys()) {
-                console.log('lele')
-                if(state.user.contacts[index]._id === contact.id){
-                    console.log(contact.status)
+                if (state.user.contacts[index]._id === contact.id) {
                     state.user.contacts[index].active = contact.status;
                     break;
                 }
-            }          
+            }
+        },
+        SET_contactRequests(state, payload) {
+            state.user.contactRequests = payload;
         }
     },
     actions: {
@@ -206,7 +206,6 @@ export default new Vuex.Store({
                 const data = await UserService.contactsRequest(ApiService.INFO_URL, token);
                 commit('SET_user', data);
                 await this._vm.$socket.emit('userLoggedIn', data);
-                         
                 return true;
             } catch (error) {
                 console.log(error);
@@ -248,7 +247,6 @@ export default new Vuex.Store({
             commit('SET_authenticationRequest');
             try {
                 const data = await UserService.authRequest(ApiService.LOGIN_URL, creditentials);
-                console.log(data);
                 commit('SET_authenticationSuccess', data.token);
                 // Redirect the user to the page he first tried to visit or to the home view
                 router.push(router.history.current.query.redirect || '/home');
@@ -276,15 +274,16 @@ export default new Vuex.Store({
             }
 
         },
-        async addContact({ commit }, contactId) {
+        async addContact({ commit }, data) {
             try {
                 const token = TokenService.getToken();
-                const response = await UserService.addContact(ApiService.ADD_CONTACT_URL, token, contactId);
-                let socket = await this._vm.$socket.emit('ADD_CONTACT', {
+                const response = await UserService.addContact(ApiService.ADD_CONTACT_URL, token, data);
+                this._vm.$socket.emit('ADD_CONTACT', {
                     user: this.getters.user.currentUser.username,
-                    contact: contactId
+                    contact: data.contactId
                 });
-                commit('SET_user', response);
+                commit('SET_userContacts', response.contacts);
+                commit('SET_contactRequests', response.contactRequests)
                 commit('SET_searchStatus', false);
                 return true;
             } catch (error) {
@@ -294,15 +293,15 @@ export default new Vuex.Store({
                 return false;
             }
         },
-        async removeContact({ commit }, contactId) {
+        async removeContact({ commit }, contact) {
             try {
-                console.log(contactId);
-                if (contactId == this.getters.chatId) {
+                if (contact.username === this.getters.chatName) {
                     commit('SET_chatStatus', false);
                 }
                 const token = TokenService.getToken();
-                const response = await UserService.removeContact(ApiService.REMOVE_CONTACT_URL, token, contactId);
-                commit('SET_user', response);
+                const response = await UserService.removeContact(ApiService.REMOVE_CONTACT_URL, token, contact._id);
+                console.log(response)
+                commit('SET_userContacts', response.contacts);
                 return true;
             } catch (error) {
                 if (error instanceof AuthenticationError) {
@@ -317,15 +316,14 @@ export default new Vuex.Store({
                 commit('SET_chatAvatar', data.avatar);
                 commit('SET_chatName', data.name);
                 const token = TokenService.getToken();
-                const chatData = await ChatService.chatRequest(ApiService.CHAT_URL, token, data.id);
-                console.log(chatData);
-                let socket = await this._vm.$socket.emit('JOIN_ROOM', {
-                    user: data.id,
-                    chat: chatData.chatId
+                const chatData = await ChatService.chatRequest(ApiService.CHAT_URL, token, data);
+                console.log(chatData)
+                await this._vm.$socket.emit('JOIN_ROOM', {
+                    user: this.getters.user.currentUser,
+                    chatId: chatData.chatId
                 });
                 commit('SET_chatContent', chatData.messages);
                 commit('SET_chatId', chatData.chatId);
-                console.log(this.getters.chatId);
                 return true;
             } catch (error) {
                 if (error instanceof AuthenticationError) {
@@ -337,23 +335,21 @@ export default new Vuex.Store({
         },
         async sendMessage({ commit }, messageData) {
             const token = TokenService.getToken();
-            console.log('got messageData');
             const updatedChat = await ChatService.sendMessage(ApiService.MESSAGES_URL, token, messageData);
             console.log(updatedChat)
-            commit('SET_Message', updatedChat.message);
+            commit('SET_Message', updatedChat);
             return true;
         },
         async logout({ commit }) {
             //remove the token from store
             UserService.logout();
-            console.log('gona disconnect')
             this._vm.$socket.emit('userDisconnect');
             commit('SET_logoutSuccess');
             commit('SET_chatContent');
             commit('SET_chatStatus');
             commit('SET_authenticationSuccess');
             commit('SET_searchStatus');
-            commit('SET_searchedData');    
+            commit('SET_searchedData');
             router.push('/login');
         }
     },

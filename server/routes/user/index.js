@@ -9,7 +9,7 @@ const avatars = db.get('avatars');
 const router = express.Router();
 
 
-var applicationStatics = {
+const applicationStatics = {
     avatarData: (req, res, next) => {
         avatars.findOne({}, { avatars: 1 })
             .then(avatarObject => {
@@ -22,9 +22,14 @@ var applicationStatics = {
     }
 }
 
-var contactService = {
+const contactService = {
     refreshContacts: (req, res, next) => {
         const userData = req.data.user;
+        console.log(userData.contactRequests);
+        users.find({ _id: { $in: userData.contactRequests } }, { username: 1, avatar: 1 }).then(contacts => {
+            console.log(contacts)
+            req.data.contactRequests = contacts
+        })
         users.find({ _id: { $in: userData.contacts } }, { username: 1, avatar: 1 }).then(contacts => {
             req.data.contacts = contacts;
             next();
@@ -33,18 +38,29 @@ var contactService = {
         });
     },
     addContact: (req, res, next) => {
-        const curentUser = req.data.user;
-        const contactId = req.body.userId;
-        users.findOne({ _id: contactId })
+        const currentUser = req.data.user;
+        const contactId = req.body.data.contactId.toString();
+        if (req.body.data.fromRequest) {
+            users.findOneAndUpdate({ _id: currentUser._id.toString() }, { $pull: { contactRequests: contactId }, $push: { contacts: contactId} })
+            .then(updatedUser => {
+                req.data.user.contactRequests = updatedUser.contactRequests;
+                req.data.user.contacts = updatedUser.contacts
+                next();
+            })
+        } else {
+            users.findOneAndUpdate({ _id: contactId }, { $push: { contactRequests: currentUser._id.toString() } })
             .then(foundContact => {
-                users.findOneAndUpdate({ username: curentUser.username }, { $push: { contacts: foundContact._id.toString() } })
+
+                users.findOneAndUpdate({ _id: currentUser._id }, { $push: { contacts: contactId } })
                     .then(updatedUser => {
+
                         req.data.user.contacts = updatedUser.contacts
                         next();
                     })
             }).catch(error => {
                 sendError(res, 409, 'That user does not exist', next);
             });
+        }
     },
     removeContact: (req, res, next) => {
         const userData = req.data.user;
@@ -59,68 +75,104 @@ var contactService = {
             });
     }
 }
-var searchService = {
+const searchService = {
     searchData: (req, res, next) => {
         const searchValue = req.body.searchValue;
         const currentUser = req.data.user;
-        console.log(req.body)
         users.find({ username: { $regex: searchValue, $ne: currentUser.username, $options: 'i' }, _id: { $nin: currentUser.contacts } }).then(filteredUsers => {
             res.send(filteredUsers);
         });
     }
 }
-var chatService = {
+const chatService = {
     refreshChats: (req, res, next) => {
         const currentUserId = req.data.user._id.toString();
-        chats.find({ participents: currentUserId}).then( chats => {
-            req.data.chats = chats;
+        chats.find({ participents: currentUserId }).then(allChats => {
+            allChats.map(chat => {
+                if (!chat.group) {
+                    const chatData = chat.participentsDATA[currentUserId];
+                    chat.avatar = chatData.chatAvatar;
+                    chat.name = chatData.chatName;
+                }
+            });
+            //find a way to query object
+            req.data.chats = allChats;
             next();
         }).catch(error => {
-            console.log(error)
+            console.log(error);
             sendError(res, 500, 'Problem connecting to server', next);
         });
     },
     viewChat: (req, res, next) => {
         const currentUser = req.data.user;
-        const chatParticipents = [currentUser._id.toString(), req.body.contactId];
-        chats.findOne({ participents: { $all: chatParticipents } }).then(chat => {
-            if (chat) {
-                //get chat data
-                let chatId = chat._id.toString();
-                messages.findOne({ chatId: chat._id.toString() }, { _id: 0, chatId: 0 }).then(chatMessages => {
-                    if (chatMessages) {
-                        res.send({
-                            messages: chatMessages.messages,
-                            chatId
-                        });
+        const currentUserId = currentUser._id.toString();
+        const chatData = req.body.data;
+        if (chatData.direct) {
+            //return the direct conntact chat
+            const otherUser = chatData.contact;
+            const chatParticipents = [currentUserId, otherUser._id]
+            chats.findOne({ participents: { $all: chatParticipents }, group: false })
+                .then(chat => {
+                    if (chat) {
+                        //send chat data
+                        messages.findOne({ chatId: chat._id.toString() }, { _id: 0, chatId: 0 }).then(chatMessages => {
+                            let messages;
+                            chatMessages ? messages = chatMessages.messages : messages = [];
+                            const chatData = {
+                                messages,
+                                chatId: chat._id
+                            }
+                            res.send(chatData);
+                        })
                     } else {
-                        res.send({
-                            messages: [],
-                            chatId
+                        //create the chat and then send chat data
+                        chats.insert({
+                            created_at: Date.now(),
+                            group: false,
+                            participents: chatParticipents,
+                            //set the display data for each user
+                            participentsDATA: {
+                                [currentUserId]: {
+                                    //chat name for this user is the username of the other user 
+                                    chatName: otherUser.username,
+                                    chatAvatar: otherUser.avatar,
+                                },
+                                [otherUser._id]: {
+                                    userId: otherUser._id,
+                                    chatName: currentUser.username,
+                                    chatAvatar: currentUser.avatar,
+                                }
+                            }
+                        }).then(chat => {
+                            req.data.chatData = {
+                                messages: [],
+                                chatId: chat._id
+                            };
+                            next();
                         })
                     }
-
                 })
-            } else {
-                //create new chat
-                chatService.createChat(chatParticipents, res);
-            }
-        })
-    },
-    createChat: (chatParticipents, res) => {
-        chats.insert({
-            participents: chatParticipents,
-            created_at: Date.now()
-        }).then(chat => {
-            let chatId = chat._id.toString();
-            res.send({
-                messages: [],
-                chatId
-            });
-        });
+        } else {
+            //return chat by chatId
+            console.log(chatData)
+            chats.findOne({ _id: chatData._id }).then(chat => {
+                if (chat) {
+                    messages.findOne({ chatId: chat._id.toString() }).then(chatMessages => {
+                        let messages;
+                        chatMessages ? messages = chatMessages.messages : messages = [];
+                        const chatData = {
+                            messages,
+                            chatId: chat._id
+                        }
+                        res.send(chatData);
+                    })
+                }
+            })
+        }
     },
     saveMessage: (req, res, next) => {
         const messageData = req.body.messageData;
+        console.log(messageData.message)
         messages.findOne({ chatId: messageData.chatId }).then(chatMessages => {
             if (!chatMessages) {
                 //create a new message document for the current chat
@@ -146,10 +198,7 @@ var chatService = {
 
 
 
-
-
 function sendData(req, res) {
-    console.log(req.data);
     res.send(req.data);
 }
 
