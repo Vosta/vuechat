@@ -31,6 +31,7 @@ export default new Vuex.Store({
             contactRequests: [],
             chats: [],
         },
+        notification: '',
         search: {
             searchStatus: false,
             searchValue: '',
@@ -101,7 +102,10 @@ export default new Vuex.Store({
         },
         allActiveContacts: (state) => {
             return state.activeContacts
-        }
+        },
+        notification: (state) => {
+            return state.notification
+        },
     },
     mutations: {
         SET_DefaultState(state) {
@@ -130,10 +134,11 @@ export default new Vuex.Store({
                 currentUser: data.user,
                 contacts: data.contacts,
                 chats: data.chats,
-                contactRequests: data.contactRequests
+                contactRequests: data.contactRequests,
+                pendingContactRequests: data.pendingContactRequests
             }
         },
-        SET_userContacts(state, payload){
+        SET_userContacts(state, payload) {
             state.user.contacts = payload;
         },
         SET_avatars(state, avatars) {
@@ -158,7 +163,7 @@ export default new Vuex.Store({
         SET_searchedData(state, value) {
             state.search.searchedData = value;
         },
-        SET_chats(state, payload){
+        SET_chats(state, payload) {
             state.user.chats = payload;
         },
         SET_chatStatus(state, value) {
@@ -180,7 +185,6 @@ export default new Vuex.Store({
             state.chat.socketId = value;
         },
         SET_Message(state, payload) {
-            console.log(payload)
             state.chat.messages.push(payload.message);
             /*if (state.chat.chatId !== payload.chatId) {
                 //give that chat an unread message badge
@@ -197,14 +201,21 @@ export default new Vuex.Store({
         },
         SET_contactRequests(state, payload) {
             state.user.contactRequests = payload;
+        },
+        SET_NewChatRequest(state, payload){
+            state.user.contactRequests.push(payload);
+        },
+        SET_notification(state, payload) {
+            state.notification = payload;
         }
     },
     actions: {
-        async requestContacts({ commit }) {
+        async requestData({ commit }) {
             try {
                 const token = TokenService.getToken();
-                const data = await UserService.contactsRequest(ApiService.INFO_URL, token);
+                const data = await UserService.requestData(ApiService.USER_DATA_URL, token);
                 commit('SET_user', data);
+                console.log(data)
                 await this._vm.$socket.emit('userLoggedIn', data);
                 return true;
             } catch (error) {
@@ -274,17 +285,39 @@ export default new Vuex.Store({
             }
 
         },
-        async addContact({ commit }, data) {
+        async getContact({ commit }, contactId) {
+            try {
+                const token = TokenService.getToken();
+                const contact = await UserService.getContact(ApiService.GET_CONTACT_URL, token, contactId);
+                console.log(contact)
+                commit('SET_NewChatRequest', contact);
+                return true;
+            } catch (error) {
+                if (error instanceof AuthenticationError) {
+                    console.log(error.message)
+                }
+                return false;
+            }
+        },
+        async addContact({ commit, dispatch }, data) {
             try {
                 const token = TokenService.getToken();
                 const response = await UserService.addContact(ApiService.ADD_CONTACT_URL, token, data);
-                this._vm.$socket.emit('ADD_CONTACT', {
-                    user: this.getters.user.currentUser.username,
-                    contact: data.contactId
-                });
+                console.log(response)
                 commit('SET_userContacts', response.contacts);
-                commit('SET_contactRequests', response.contactRequests)
+                commit('SET_contactRequests', response.contactRequests);
+                commit('SET_notification', response.notification);
                 commit('SET_searchStatus', false);
+                const openChatData = {
+                    direct: true,
+                    name: response.contact.username,
+                    avatar: response.contact.avatar,
+                    contact: response.contact
+                }
+                dispatch('openChat', openChatData);
+                if(!data.fromRequest){
+                    this._vm.$socket.emit("addContact", response.contact._id);
+                }
                 return true;
             } catch (error) {
                 if (error instanceof AuthenticationError) {
@@ -300,8 +333,24 @@ export default new Vuex.Store({
                 }
                 const token = TokenService.getToken();
                 const response = await UserService.removeContact(ApiService.REMOVE_CONTACT_URL, token, contact._id);
-                console.log(response)
                 commit('SET_userContacts', response.contacts);
+                return true;
+            } catch (error) {
+                if (error instanceof AuthenticationError) {
+                    console.log(error.message)
+                }
+                return false;
+            }
+        },
+        async removeChat({ commit }, chatId) {
+            try {
+                if (chatId === this.getters.chatId) {
+                    commit('SET_chatStatus', false);
+                }
+                const token = TokenService.getToken();
+                const response = await UserService.removeChat(ApiService.REMOVE_CHAT_URL, token, chatId);
+                console.log(response)
+                commit('SET_chats', response.chats);
                 return true;
             } catch (error) {
                 if (error instanceof AuthenticationError) {
@@ -317,11 +366,13 @@ export default new Vuex.Store({
                 commit('SET_chatName', data.name);
                 const token = TokenService.getToken();
                 const chatData = await ChatService.chatRequest(ApiService.CHAT_URL, token, data);
-                console.log(chatData)
                 await this._vm.$socket.emit('JOIN_ROOM', {
                     user: this.getters.user.currentUser,
                     chatId: chatData.chatId
                 });
+                if (chatData.chats) {
+                    commit('SET_chats', chatData.chats)
+                }
                 commit('SET_chatContent', chatData.messages);
                 commit('SET_chatId', chatData.chatId);
                 return true;

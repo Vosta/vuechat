@@ -1,33 +1,16 @@
 <template>
   <div>
-    <v-list subheader v-if="user.contactRequests.length > 0">
-      <v-subheader>Contact Requests</v-subheader>
-      <v-list-tile
-        v-for="contact in user.contactRequests"
-        avatar
-        class="contact"
-        :key="contact.username"
-      >
-        <v-list-tile-avatar class="avatarImage">
-          <img :src="contact.avatar">
+    <v-text-field flat class="searchBar" label="Search" prepend-inner-icon="search" hide-details single-line solo></v-text-field>
+    <v-list subheader class="contactList">
+      <v-list-tile avatar class="contact" @click="addGroupChat()">
+        <v-list-tile-avatar>
+          <v-icon class="avatarGroup">group_add</v-icon>
         </v-list-tile-avatar>
-
         <v-list-tile-content>
-          <v-list-tile-title v-html="contact.username"></v-list-tile-title>
+          <v-list-tile-title>New group chat</v-list-tile-title>
         </v-list-tile-content>
-
-        <v-list-tile-action>
-          <span><v-icon teal class="icon" @click="addContact({contactId: contact._id, fromRequest: true})">add_circle</v-icon></span>
-        </v-list-tile-action>
-        <v-list-tile-action class="iconDiv">
-          <v-icon teal @click.stop="removeContactRequest(contact)" class="icon delete">delete</v-icon>
-        </v-list-tile-action>
       </v-list-tile>
-    </v-list>
 
-    <v-divider></v-divider>
-
-    <v-list subheader>
       <v-subheader>Contacts</v-subheader>
       <v-list-tile
         v-for="contact in user.contacts"
@@ -84,9 +67,18 @@ export default {
 };
 </script>
 <style scoped>
+.contactList {
+  padding: 0;
+  height: 100%;
+}
 .contact:hover {
   background-color: rgba(0, 0, 0, 0.1);
   cursor: pointer;
+}
+.avatarGroup {
+  font-size: 30px;
+  background-color: burlywood;
+  border-radius: 50%;
 }
 .iconDiv {
   justify-content: center;

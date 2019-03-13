@@ -1,7 +1,13 @@
 <template>
   <div>
     <div v-if="searchedData.length>0">
-      <v-list-tile v-for="user in searchedData" @click="addContact({contactId: user._id, fromRequest: false})" class="searchUser" avatar  :key="user.username">
+      <v-list-tile
+        v-for="user in searchedData"
+        @click="addContact({contactId: user._id, fromRequest: false})"
+        class="searchUser"
+        avatar
+        :key="user.username"
+      >
         <v-list-tile-avatar>
           <img :src="user.avatar">
         </v-list-tile-avatar>
@@ -11,12 +17,14 @@
         </v-list-tile-content>
 
         <v-list-tile-action>
-          <span><v-icon teal>add_circle</v-icon></span>
+          <span>
+            <v-icon teal>add_circle</v-icon>
+          </span>
         </v-list-tile-action>
       </v-list-tile>
     </div>
     <div v-else>
-        <p class="noTextFound">No users found</p>
+      <p class="noTextFound">No users found</p>
     </div>
   </div>
 </template>
@@ -30,16 +38,16 @@ export default {
     ...mapGetters(["searchedData"])
   },
   methods: {
-      ...mapActions(["addContact"])
-  },
+    ...mapActions(["addContact"]),
+  }
 };
 </script>
 <style scoped>
-.searchUser:hover{
-  cursor: pointer;    
+.searchUser:hover {
+  cursor: pointer;
   background-color: rgba(0, 0, 0, 0.18);
 }
-.noTextFound{
+.noTextFound {
   padding-top: 49%;
   width: max-content;
   margin: auto;

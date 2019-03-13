@@ -29,7 +29,7 @@ app.use('/user', user);
 
 const io = require('socket.io')(server);
 
-var connections = {};
+const connections = {};
 
 io.on("connection", function (socket) {
   //connections={}
@@ -47,6 +47,8 @@ io.on("connection", function (socket) {
     socket.broadcast.to(socket.room).emit('userEnteredOrLeft', `${user.username} left the chat`);
     socket.leave(socket.room);
   }
+
+
   //find a solution to combine these
   socket.on('disconnect', () => {
     userDisconnect();
@@ -56,7 +58,8 @@ io.on("connection", function (socket) {
   })
 
   socket.on('userLoggedIn', (data) => {
-    //put conntact in activeConnections array
+    //put contact in activeConnections array
+    console.log(data)
     connections[socket.id] = {
       userId: data.user._id,
       username: data.user.username
@@ -87,7 +90,21 @@ io.on("connection", function (socket) {
     socket.join(room);
     socket.room = room;
     socket.broadcast.to(room).emit('userEnteredOrLeft', `${data.user.username} entered the chat`);
-    console.info(socket.id + ' joined room ' + room, socket.room);
+    console.info(socket.id + ' joined room ' + room);
+  });
+
+  socket.on('addContact', (contactId) => {
+    contactId = contactId.toString();
+    console.log(contactId)
+    Object.keys(connections).find(key => {
+      if (connections[key].userId === contactId) {
+        console.log('YES')
+        const currentUser = connections[socket.id].userId;
+        io.to(key).emit('contactRequest', currentUser);
+        return;
+      }
+    });
+    return;
   });
   
   socket.on('message', (data) => {

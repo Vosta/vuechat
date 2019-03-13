@@ -1,8 +1,15 @@
 <template>
-  <div class="mainView container">
-    <chat-panel class="chatPanel"></chat-panel>
-    <chat-view v-if="chatStatus" class="chatView"></chat-view>
-  </div>
+  <v-layout class="mainView container">
+    <v-flex class="chatPanelFlex">
+      <chat-panel class="chatComponent"></chat-panel>
+    </v-flex>
+    <v-flex class="chatViewFlex">
+      <chat-view v-if="chatStatus" class="chatComponent"></chat-view>
+      <div v-else>
+        <p style="width: max-content; margin: auto; margin-top: 50%">Welcome to the chat. Have fun :D</p>
+      </div>
+    </v-flex>
+  </v-layout>
 </template>
 
 <script>
@@ -21,31 +28,45 @@ export default {
     ...mapGetters(["chatStatus", "loggedIn"])
   },
   methods: {
+    ...mapActions(["getContact"]),
     ...mapMutations(["SET_user", "SET_contactStatus", "SET_DefaultState"])
   },
   mounted() {
-    this.$socket.on('ActiveUsers', data => {
-      console.log(data)
-      this.SET_user(data)
+    this.$socket.on("ActiveUsers", data => {
+      console.log(data);
+      this.SET_user(data);
     });
-    this.$socket.on('contactStatusChanged', contact => {
+    this.$socket.on("contactStatusChanged", contact => {
       this.SET_contactStatus(contact);
     });
-  },
+    this.$socket.on('contactRequest', contactId => {
+      console.log('got socket')
+      this.getContact(contactId)
+    })
+  }
 };
 </script>
+<style>
+.searchBar{
+  border-bottom: 1px solid darkgray;
+  border-radius: 20%;
+}
+</style>
 <style scoped>
 .mainView {
   display: inline-flex;
+  width: 1300px;
 }
-.chatPanel {
+.chatPanelFlex {
   width: 30%;
-  height: 100%;
 }
-.chatView {
+.chatViewFlex {
   width: 70%;
+  border: 1px solid lightgray;
+  border-left: 0;
+}
+.chatComponent {
   height: 100%;
-  position: relative;
 }
 </style>
 

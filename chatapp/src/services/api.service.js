@@ -8,12 +8,14 @@ const ApiService = {
     LOGIN_URL: 'http://localhost:5000/auth/login',
     SIGNUP_URL: 'http://localhost:5000/auth/signup',
     AVATARS_URL: 'http://localhost:5000/user/avatars',
-    INFO_URL: 'http://localhost:5000/user/data',
+    USER_DATA_URL: 'http://localhost:5000/user/data',
     SEARCH_URL: 'http://localhost:5000/user/search',
+    GET_CONTACT_URL: 'http://localhost:5000/user/contact',
     ADD_CONTACT_URL: 'http://localhost:5000/user/contact/add',
     EDIT_CONTACT_URL: 'http://localhost:5000/user/contact/edit',
     REMOVE_CONTACT_URL: 'http://localhost:5000/user/contact/remove',
-    CHAT_URL: 'http://localhost:5000/user/chat',
+    CHAT_URL: 'http://localhost:5000/user/chat/view',
+    REMOVE_CHAT_URL: 'http://localhost:5000/user/chat/remove',
     MESSAGES_URL: 'http://localhost:5000/user/message',
     
     get(resource){

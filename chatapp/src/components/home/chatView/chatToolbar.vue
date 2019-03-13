@@ -1,6 +1,7 @@
 <template>
-    <v-layout>
-      <v-toolbar>
+  <v-layout>
+    <v-flex>
+      <v-toolbar class="chatToolbar" flat>
         <v-toolbar-side-icon></v-toolbar-side-icon>
         <v-list-tile-avatar class="profilePicture">
           <img :src="avatar">
@@ -14,15 +15,20 @@
           <v-icon>more_vert</v-icon>
         </v-btn>
       </v-toolbar>
-    </v-layout>
+    </v-flex>
+  </v-layout>
 </template>
 <script>
 export default {
-    data() {
-        return {
-            
-        }
-    },
-    props: ['name', 'avatar']
-}
+  data() {
+    return {};
+  },
+  props: ["name", "avatar"]
+};
 </script>
+
+<style scoped>
+.chatToolbar {
+  border-bottom: 1px solid lightgray;
+}
+</style>

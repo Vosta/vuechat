@@ -1,24 +1,20 @@
 <template>
   <v-form>
-    <v-container>
-      <v-layout>
-        <v-flex>
           <v-text-field
             class="messageField"
             v-model="message"
             append-outer-icon="send"
+            background-color = "white"
             box
             clear-icon="close"
             clearable
             label="Message"
             type="text"
             @click:append-outer="setMessage"
+            @click:clear="clearMessage"
             @keypress.enter.prevent="setMessage"
             hide-details
           ></v-text-field>
-        </v-flex>
-      </v-layout>
-    </v-container>
   </v-form>
 </template>
 <script>
@@ -61,5 +57,6 @@ export default {
 };
 </script>
 <style scoped>
+
 </style>
 

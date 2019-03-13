@@ -1,8 +1,10 @@
 <template>
-  <div>
-    <chat-toolbar :name="chatName" :avatar="chatAvatar" class="chatToolbar"></chat-toolbar>
-    <div class="chatWrapper">
-      <div v-if="chatStatus" class="chatDisplay" ref="chatDisplayId">
+  <v-layout column class="viewLayout">
+    <v-flex>
+      <chat-toolbar :name="chatName" :avatar="chatAvatar"></chat-toolbar>
+    </v-flex>
+    <v-flex class="chatWrapper">
+      <div v-if="chatStatus" ref="chatDisplayId">
         <div v-for="(message, index) in chatMessages" :key="index">
           <div v-if="message.info" class="divrow">
             <v-flex class="infoMessageWrapper">
@@ -16,11 +18,11 @@
           </div>
         </div>
       </div>
-
+    </v-flex>
+    <v-flex>
       <chat-keyboard class="chatKeyboard"></chat-keyboard>
-
-    </div>
-  </div>
+    </v-flex>
+  </v-layout>
 </template>
 
 <script>
@@ -72,7 +74,7 @@ export default {
         content: message,
         info: true
       };
-      this.SET_Message({message: userJoinedMessage});
+      this.SET_Message({ message: userJoinedMessage });
     });
   },
   updated() {
@@ -81,14 +83,13 @@ export default {
 };
 </script>
 <style scoped>
-.chatToolbar {
-  background-color: red;
+.viewLayout {
+  background: antiquewhite;
 }
 .chatKeyboard {
-  position: absolute;
   width: 70%;
-  left: 50%;
-  transform: translate(-50%);
+  margin: auto;
+  margin-bottom: 6px;
 }
 .chatWrapper {
   height: 90%;
@@ -129,7 +130,7 @@ export default {
   margin: auto;
   margin-top: 10px;
   font-size: 15px;
-  color: #2196F3;
+  color: #2196f3;
   padding: 0;
 }
 .divrow {
