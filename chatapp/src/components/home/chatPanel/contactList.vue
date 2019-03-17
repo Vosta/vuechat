@@ -1,6 +1,14 @@
 <template>
   <div>
-    <v-text-field flat class="searchBar" label="Search" prepend-inner-icon="search" hide-details single-line solo></v-text-field>
+    <v-text-field
+      flat
+      class="searchBar"
+      label="Search"
+      prepend-inner-icon="search"
+      hide-details
+      single-line
+      solo
+    ></v-text-field>
     <v-list subheader class="contactList">
       <v-list-tile avatar class="contact" @click="addGroupChat()">
         <v-list-tile-avatar>
@@ -13,7 +21,7 @@
 
       <v-subheader>Contacts</v-subheader>
       <v-list-tile
-        v-for="contact in user.contacts"
+        v-for="contact in user.contactsData"
         @click="handleOpenChat(contact)"
         avatar
         class="contact"
@@ -47,18 +55,19 @@ export default {
     return {};
   },
   computed: {
-    ...mapGetters(["user", "chatName"])
+    ...mapGetters(["user", "currentChat"])
   },
   methods: {
     ...mapActions(["addContact", "removeContact", "openChat"]),
     handleOpenChat(contact) {
-      console.log(contact);
-      if (contact.username !== this.chatName) {
+      if (contact.username !== this.currentChat.name) {
         const data = {
           direct: true,
-          name: contact.username,
-          avatar: contact.avatar,
-          contact
+          chatData: {
+            name: contact.username,
+            avatar: contact.avatar,
+            contactId: contact._id
+          }
         };
         this.openChat(data);
       }

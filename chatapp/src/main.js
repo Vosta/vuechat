@@ -3,7 +3,9 @@ import App from './App.vue'
 import router from './router'
 import store from './store/store'
 import VeeValidate from 'vee-validate';
-import VueSocketio from 'vue-socket-io';
+import VueSocketIO from 'vue-socket.io';
+
+
 //Vuetify
 import './plugins/vuetify'
 import Vuetify, {
@@ -18,7 +20,17 @@ import Vuetify, {
 } from 'vuetify/lib'
 
 
-Vue.config.productionTip = false
+Vue.config.productionTip = false;
+
+Vue.use(new VueSocketIO({
+  debug: true,
+  connection: 'http://localhost:5000',
+  vuex: {
+      store,
+      actionPrefix: 'SOCKET_',
+      mutationPrefix: 'SOCKET_SET_'
+  },
+}));
 
 Vue.use(VeeValidate);
 Vue.use(Vuetify, {
@@ -34,7 +46,6 @@ Vue.use(Vuetify, {
     VFadeTransition
   }
 });
-Vue.use(VueSocketio, 'http://localhost:5000');
 
 new Vue({
   router,

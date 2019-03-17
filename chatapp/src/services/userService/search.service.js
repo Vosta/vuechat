@@ -1,12 +1,11 @@
-import { TokenService } from '../storage.service';
 import { ApiService } from '../api.service';
 
 const SearchService = {
-    searchData: async function (url, token, searchValue){
+    search: async function (url, searchValue){
         const requestData = {
             method: 'post',
             url: url,
-            data: { token, searchValue }
+            data: searchValue
         }
         try {
             const response = await ApiService.customRequest(requestData);

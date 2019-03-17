@@ -10,12 +10,12 @@
           prepend-inner-icon="search"
           single-line
           solo
-          :value="searchValue"
+          :value="search.value"
           @keyup="updateSearch"
         ></v-text-field>
       </v-flex>
       <v-flex>
-        <search-dialog v-if="searchStatus"></search-dialog>
+        <search-dialog v-if="search.status"></search-dialog>
         <contact-requests :user="user" v-else></contact-requests>
       </v-flex>
     </v-layout>
@@ -41,18 +41,23 @@ export default {
     };
   },
   computed: {
-    ...mapGetters(["user", "searchStatus", "searchValue"])
+    ...mapGetters(["user", "search"])
   },
   methods: {
     ...mapActions(["requestContacts", "searchData"]),
     ...mapMutations(["SET_searchStatus", "SET_searchValue"]),
     updateSearch(e) {
-      let searchValue = e.target.value;
+      const searchValue = e.target.value;
       this.SET_searchValue(searchValue);
       if (searchValue !== "") {
-        this.searchData(searchValue);
+        const data = {
+          currentUser: this.user,
+          value: searchValue,
+          type: 'users'
+        }
+        this.$socket.emit('SEARCH', data); 
       } else {
-        this.SET_searchStatus();
+        this.SET_searchStatus(false);
       }
     }
   },

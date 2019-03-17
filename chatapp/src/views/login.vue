@@ -165,6 +165,11 @@ export default {
       this.SET_avatarDialog(!this.avatarDialog);
     },
   },
+  sockets: {
+    connect(){
+      console.log('connected to socket')
+    }
+  },
   mounted() {
     this.SET_DefaultState()
   },

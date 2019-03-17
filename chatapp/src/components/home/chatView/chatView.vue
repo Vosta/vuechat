@@ -1,11 +1,11 @@
 <template>
   <v-layout column class="viewLayout">
     <v-flex>
-      <chat-toolbar :name="chatName" :avatar="chatAvatar"></chat-toolbar>
+      <chat-toolbar :name="currentChat.toolbar.name" :avatar="currentChat.toolbar.avatar"></chat-toolbar>
     </v-flex>
     <v-flex class="chatWrapper">
-      <div v-if="chatStatus" ref="chatDisplayId">
-        <div v-for="(message, index) in chatMessages" :key="index">
+      <div v-if="currentChat.status" ref="chatDisplayId">
+        <div v-for="(message, index) in currentChat.messages" :key="index">
           <div v-if="message.info" class="divrow">
             <v-flex class="infoMessageWrapper">
               <p :class="{infoMessage: message.info}">{{ message.content }}</p>
@@ -45,28 +45,22 @@ export default {
     };
   },
   computed: {
-    ...mapGetters([
-      "chatStatus",
-      "chatName",
-      "chatAvatar",
-      "chatMessages",
-      "chatId",
-      "user"
-    ])
+    ...mapGetters(["currentChat", "user"])
   },
   methods: {
     ...mapActions(["logout", "sendMessage"]),
     ...mapMutations(["SET_Message"]),
 
     messageByWho(userId) {
-      if (userId === this.user.currentUser._id) {
+      console.log(userId, this.user._id)
+      if (userId === this.user._id) {
         return "from-user";
       }
       return "from-contact";
     }
   },
   mounted() {
-    this.$socket.on("recieveMessage", data => {
+    /*this.$socket.on("recieveMessage", data => {
       this.SET_Message(data);
     });
     this.$socket.on("userEnteredOrLeft", message => {
@@ -75,7 +69,7 @@ export default {
         info: true
       };
       this.SET_Message({ message: userJoinedMessage });
-    });
+    });*/
   },
   updated() {
     this.$refs.chatDisplayId.scrollTop = this.$refs.chatDisplayId.scrollHeight;

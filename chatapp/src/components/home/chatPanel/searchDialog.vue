@@ -1,8 +1,8 @@
 <template>
   <div>
-    <div v-if="searchedData.length>0">
+    <div v-if="search.data.length > 0">
       <v-list-tile
-        v-for="user in searchedData"
+        v-for="user in search.data"
         @click="addContact({contactId: user._id, fromRequest: false})"
         class="searchUser"
         avatar
@@ -35,7 +35,7 @@ export default {
     return {};
   },
   computed: {
-    ...mapGetters(["searchedData"])
+    ...mapGetters(["search"])
   },
   methods: {
     ...mapActions(["addContact"]),

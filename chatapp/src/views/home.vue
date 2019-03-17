@@ -4,9 +4,11 @@
       <chat-panel class="chatComponent"></chat-panel>
     </v-flex>
     <v-flex class="chatViewFlex">
-      <chat-view v-if="chatStatus" class="chatComponent"></chat-view>
+      <chat-view v-if="currentChat.status" class="chatComponent"></chat-view>
       <div v-else>
-        <p style="width: max-content; margin: auto; margin-top: 50%">Welcome to the chat. Have fun :D</p>
+        <p
+          style="width: max-content; margin: auto; margin-top: 50%"
+        >Welcome to the chat. Have fun :D</p>
       </div>
     </v-flex>
   </v-layout>
@@ -25,29 +27,43 @@ export default {
     return {};
   },
   computed: {
-    ...mapGetters(["chatStatus", "loggedIn"])
+    ...mapGetters(["user", "currentChat", "loggedIn", "authToken"])
   },
   methods: {
     ...mapActions(["getContact"]),
     ...mapMutations(["SET_user", "SET_contactStatus", "SET_DefaultState"])
   },
+  sockets: {
+    connect(){
+      console.log('connected');
+      
+    }
+  },
   mounted() {
-    this.$socket.on("ActiveUsers", data => {
+    
+    /*this.$socket.on("ActiveUsers", data => {
       console.log(data);
       this.SET_user(data);
     });
     this.$socket.on("contactStatusChanged", contact => {
       this.SET_contactStatus(contact);
     });
-    this.$socket.on('contactRequest', contactId => {
-      console.log('got socket')
-      this.getContact(contactId)
-    })
+    this.$socket.on("contactRequest", contactId => {
+      if (this.user.currentUser.contactRequests.indexOf(contactId) < 0 && this.user.currentUser.contacts.indexOf(contactId) < 0) {
+        console.log(this.user)
+        console.log(this.user.currentUser.contacts);
+        console.log(this.user.currentUser.contacts.indexOf(contactId))
+        this.getContact(contactId);
+      }
+    });*/
+  },
+  created(){
+    this.$socket.emit('GET_USER_DATA', this.authToken);
   }
 };
 </script>
 <style>
-.searchBar{
+.searchBar {
   border-bottom: 1px solid darkgray;
   border-radius: 20%;
 }

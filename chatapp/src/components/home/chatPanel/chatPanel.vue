@@ -4,10 +4,10 @@
       <v-flex class="chatPanelRow">
         <v-toolbar class="panelToolbar" flat>
           <v-list-tile-avatar class="profilePicture">
-            <img :src="user.currentUser.avatar">
+            <img :src="user.avatar">
           </v-list-tile-avatar>
 
-          <v-toolbar-title class="profileUsername">{{user.currentUser.username}}</v-toolbar-title>
+          <v-toolbar-title class="profileUsername">{{user.username}}</v-toolbar-title>
 
           <v-spacer></v-spacer>
           <v-btn icon @click="currentTab = 'chat-list'">
@@ -62,23 +62,20 @@ export default {
     notification() {
       setInterval(() => {
         this.SET_notification();
-      }, 1500);
+      }, 2500);
     }
   },
   computed: {
     ...mapGetters(["user", "notification"])
   },
   methods: {
-    ...mapActions(["logout", "requestData", "showContacts"]),
+    ...mapActions(["logout", "showContacts"]),
     ...mapMutations([
       "SET_ActiveUsers",
       "SET_ActiveContacts",
       "SET_notification"
     ])
   },
-  created() {
-    this.requestData();
-  }
 };
 </script>
 

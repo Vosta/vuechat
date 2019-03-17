@@ -28,24 +28,21 @@ export default {
   }),
   watch: {},
   computed: {
-    ...mapGetters(["user", "chatId"])
+    ...mapGetters(["user", "currentChat"])
   },
 
   methods: {
-    ...mapActions(["sendMessage"]),
-
     setMessage() {
       if (this.message !== "") {
         let messageData = {
-          chatId: this.chatId,
+          chatId: this.currentChat.id,
           message: {
             content: this.message,
-            by: this.user.currentUser._id,
+            by: this.user._id,
             date: Date.now()
           }
         };
-        this.$socket.emit("message", messageData);
-        this.sendMessage(messageData);
+        this.$socket.emit("SEND_MESSAGE", messageData);
         this.clearMessage();
       }
     },

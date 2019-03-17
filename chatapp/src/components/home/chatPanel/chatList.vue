@@ -43,15 +43,17 @@ export default {
     return {};
   },
   computed: {
-    ...mapGetters(["user", "chatId"])
+    ...mapGetters(["user", "currentChat"])
   },
   methods: {
     ...mapActions(["openChat", "removeChat"]),
     handleOpenChat(chat) {
-      if (chat._id != this.chatId) {
+      if (chat._id != this.currentChat.id) {
         const data = {
           direct: false,
-          ...chat
+          chatData: {
+            ...chat
+          }
         };
         this.openChat(data);
       }

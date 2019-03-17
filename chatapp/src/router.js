@@ -6,8 +6,6 @@ import store from './store/store';
 
 Vue.use(Router)
 
-const VERIFY_URL = 'http://localhost:5000/auth/verify';
-
 const router = new Router({
   mode: 'history',
   base: process.env.BASE_URL,
