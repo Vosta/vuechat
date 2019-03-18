@@ -12,7 +12,9 @@ const doSearch = (searchData) => {
             }, { username: 1, avatar: 1 })
                 .then(filteredUsers => {
                     resolve(filteredUsers);
-                });
+                }).catch(error => {
+                    reject(error);
+                })
         }
     })
 

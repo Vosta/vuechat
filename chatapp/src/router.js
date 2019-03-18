@@ -11,6 +11,10 @@ const router = new Router({
   base: process.env.BASE_URL,
   routes: [
     {
+      path: '*',
+      redirect: '/login'
+    },
+    {
       name: 'login',
       path: '/login',
       component: Login
@@ -20,6 +24,7 @@ const router = new Router({
       path: '/home',
       component: Home
     },
+
   ],
 
 });

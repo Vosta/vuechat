@@ -1,30 +1,33 @@
 <template>
   <div>
-    <div v-if="search.data.length > 0">
-      <v-list-tile
-        v-for="user in search.data"
-        @click="addContact({contactId: user._id, fromRequest: false})"
-        class="searchUser"
-        avatar
-        :key="user.username"
-      >
-        <v-list-tile-avatar>
-          <img :src="user.avatar">
-        </v-list-tile-avatar>
+    <div v-if="search.value.length > 0">
+      <v-list subheader v-if="search.data.length > 0">
+        <v-subheader>Found Users</v-subheader>
+        <v-list-tile
+          v-for="user in search.data"
+          @click="sendContactRequest(user._id)"
+          class="searchUser"
+          avatar
+          :key="user.username"
+        >
+          <v-list-tile-avatar>
+            <img :src="user.avatar">
+          </v-list-tile-avatar>
 
-        <v-list-tile-content>
-          <v-list-tile-title v-html="user.username"></v-list-tile-title>
-        </v-list-tile-content>
+          <v-list-tile-content>
+            <v-list-tile-title v-html="user.username"></v-list-tile-title>
+          </v-list-tile-content>
 
-        <v-list-tile-action>
-          <span>
-            <v-icon teal>add_circle</v-icon>
-          </span>
-        </v-list-tile-action>
-      </v-list-tile>
-    </div>
-    <div v-else>
-      <p class="noTextFound">No users found</p>
+          <v-list-tile-action>
+            <span>
+              <v-icon teal>add_circle</v-icon>
+            </span>
+          </v-list-tile-action>
+        </v-list-tile>
+      </v-list>
+      <div v-else>
+        <p class="noTextFound">No users found</p>
+      </div>
     </div>
   </div>
 </template>
@@ -35,10 +38,14 @@ export default {
     return {};
   },
   computed: {
-    ...mapGetters(["search"])
+    ...mapGetters(["user", "search"])
   },
   methods: {
-    ...mapActions(["addContact"]),
+    ...mapMutations(["SET_SEARCH_STATUS"]),
+    sendContactRequest(contactId){
+      this.$socket.emit('CONTACT_REQUEST', contactId);
+      this.SET_SEARCH_STATUS(false);
+    }
   }
 };
 </script>

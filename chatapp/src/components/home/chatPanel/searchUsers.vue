@@ -45,7 +45,7 @@ export default {
   },
   methods: {
     ...mapActions(["requestContacts", "searchData"]),
-    ...mapMutations(["SET_searchStatus", "SET_searchValue"]),
+    ...mapMutations(["SET_SEARCH_STATUS", "SET_searchValue"]),
     updateSearch(e) {
       const searchValue = e.target.value;
       this.SET_searchValue(searchValue);
@@ -57,7 +57,7 @@ export default {
         }
         this.$socket.emit('SEARCH', data); 
       } else {
-        this.SET_searchStatus(false);
+        this.SET_SEARCH_STATUS(false);
       }
     }
   },

@@ -57,7 +57,7 @@ export default {
       }
     });*/
   },
-  created(){
+  mounted(){
     this.$socket.emit('GET_USER_DATA', this.authToken);
   }
 };

@@ -58,7 +58,8 @@ export default {
     ...mapGetters(["user", "currentChat"])
   },
   methods: {
-    ...mapActions(["addContact", "removeContact", "openChat"]),
+    ...mapActions(["addContact", "openChat"]),
+    ...mapMutations(["SET_CHAT_STATUS"]),
     handleOpenChat(contact) {
       if (contact.username !== this.currentChat.name) {
         const data = {
@@ -71,7 +72,13 @@ export default {
         };
         this.openChat(data);
       }
-    }
+    },
+    removeContact(contact){
+      if(contact.username === this.currentChat.name){
+        this.SET_CHAT_STATUS(false);
+      }
+      this.$socket.emit('REMOVE_CONTACT', contact._id);
+    } 
   }
 };
 </script>
