@@ -135,7 +135,7 @@ export default {
   },
   methods: {
     ...mapActions(["login", "signUp"]),
-    ...mapMutations(["SET_avatarDialog", "SET_authenticationError", "SET_DefaultState"]),
+    ...mapMutations(["SET_avatarDialog", "SET_authenticationError"]),
 
     changeForm() {
       this.logginIn = !this.logginIn; //change formular
@@ -169,9 +169,6 @@ export default {
     connect(){
       console.log('connected to socket')
     }
-  },
-  mounted() {
-    this.SET_DefaultState()
   },
 };
 </script>

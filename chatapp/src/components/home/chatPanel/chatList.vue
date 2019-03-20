@@ -1,7 +1,7 @@
 <template>
   <div>
     <v-text-field class="searchBar" flat label="Search" prepend-inner-icon="search" hide-details single-line solo></v-text-field>
-    <v-list v-if="user.chats.length > 0" subheader class="chatList">
+    <v-list subheader class="chatList">
       <v-subheader>Chats</v-subheader>
       <v-list-tile
         v-for="chat in user.chats"
@@ -28,11 +28,6 @@
         </v-list-tile-action>
       </v-list-tile>
     </v-list>
-    <div v-else>
-      <p
-        style="margin:auto; max-width: max-content"
-      >Navigate to the add chat or add user button to add a chat</p>
-    </div>
   </div>
 </template>
 

@@ -5,7 +5,6 @@ import UserService from '../services/userService/user.service';
 import { TokenService } from '../services/storage.service';
 import { ApiService } from '../services/api.service';
 import AuthenticationError from '../services/error.service';
-import defaultState from './defaultState'
 Vue.use(Vuex)
 
 export default new Vuex.Store({
@@ -50,13 +49,11 @@ export default new Vuex.Store({
             return state.auth.accessToken ? true : false;
         },
         authToken: (state) => {
-            console.log(state.auth.accessToken)
             return state.auth.accessToken;
         },
         authenticationError: (state) => {
             return state.auth.authenticationError;
         },
-
         authenticating: (state) => {
             return state.auth.authenticating;
         },
@@ -89,19 +86,14 @@ export default new Vuex.Store({
         },
     },
     mutations: {
-        SET_DefaultState(state) {
-            state = defaultState;
-        },
         SET_authenticationRequest(state) {
             state.auth.authenticating = true;
             state.auth.authenticationError = '';
         },
-
         SET_authenticationSuccess(state, accessToken) {
             state.auth.accessToken = accessToken
             state.auth.authenticating = false;
         },
-
         SET_authenticationError(state, errorMessage) {
             state.auth.authenticating = false;
             state.auth.authenticationError = errorMessage;
@@ -230,28 +222,6 @@ export default new Vuex.Store({
         }
     },
     actions: {
-        openChat({ commit }, data) {
-            commit('SET_CHAT_TOOLBAR', { name: data.chatData.name, avatar: data.chatData.avatar });
-            commit('SET_CHAT_STATUS', true);
-            //send contactId, 
-            this._vm.$socket.emit('JOIN_ROOM', {
-                direct: data.direct,
-                chatData: data.chatData
-            });
-        },
-        async getAvatars({ commit }) {
-            try {
-                const avatars = await UserService.loadAvatars(ApiService.AVATARS_URL);
-                commit('SET_avatars', avatars);
-                return true;
-            } catch (error) {
-                console.log(error);
-                if (error instanceof AuthenticationError) {
-                    console.log(error.message)
-                }
-                return false;
-            }
-        },
         async signUp({ commit }, creditentials) {
             commit('SET_authenticationRequest');
             try {
@@ -283,6 +253,44 @@ export default new Vuex.Store({
                 return false;
             }
         },
+        async logout({ commit }) {
+            //remove the token from store
+            UserService.logout();
+            this._vm.$socket.emit('userDisconnect');
+            commit('SET_logoutSuccess');
+            commit('SET_chatContent');
+            commit('SET_CHAT_STATUS');
+            commit('SET_authenticationSuccess');
+            commit('SET_SEARCH_STATUS');
+            router.push('/login');
+        },
+        SOCKET_ERROR({ commit, dispatch }, errorMessage){
+            commit('SET_authenticationError', errorMessage);
+            dispatch('logout');
+        },
+        openChat({ commit }, data) {
+            commit('SET_CHAT_TOOLBAR', { name: data.chatData.name, avatar: data.chatData.avatar });
+            commit('SET_CHAT_STATUS', true);
+            //send contactId, 
+            this._vm.$socket.emit('JOIN_ROOM', {
+                direct: data.direct,
+                chatData: data.chatData
+            });
+        },
+        async getAvatars({ commit }) {
+            try {
+                const avatars = await UserService.loadAvatars(ApiService.AVATARS_URL);
+                commit('SET_avatars', avatars);
+                return true;
+            } catch (error) {
+                console.log(error);
+                if (error instanceof AuthenticationError) {
+                    console.log(error.message)
+                }
+                return false;
+            }
+        },
+        
         async removeChat({ commit }, chatId) {
             try {
                 const token = TokenService.getToken();
@@ -297,17 +305,6 @@ export default new Vuex.Store({
                 return false;
             }
         },
-        async logout({ commit }) {
-            //remove the token from store
-            UserService.logout();
-            this._vm.$socket.emit('userDisconnect');
-            commit('SET_logoutSuccess');
-            commit('SET_chatContent');
-            commit('SET_CHAT_STATUS');
-            commit('SET_authenticationSuccess');
-            commit('SET_SEARCH_STATUS');
-            commit('SET_searchedData');
-            router.push('/login');
-        }
+        
     },
 })

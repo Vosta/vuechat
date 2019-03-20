@@ -24,9 +24,7 @@ const router = new Router({
       path: '/home',
       component: Home
     },
-
   ],
-
 });
 
 router.beforeEach((from, to, next) => {
@@ -34,14 +32,14 @@ router.beforeEach((from, to, next) => {
     //test the token to see if its valid
     if(from.name === 'login'){
       next('/home');
-    }
-  next();
+    } else next();
+  
   } else {
     if(from.name !== 'login'){
       store.commit('SET_authenticationError','Token expired')
       next('/login');
-    }
-    next();
+    } else next();
+    
   }
 });
 

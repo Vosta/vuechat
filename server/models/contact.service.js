@@ -4,7 +4,6 @@ const users = db.get('users');
 
 const contactService = {
     refreshContacts(userData) {
-        console.log(userData)
         return new Promise((resolve, reject) => {
             users.find({ _id: { $in: userData.contactRequests } }, { username: 1, avatar: 1 }).then(contactRequests => { 
                 userData.contactRequests = contactRequests;
@@ -18,6 +17,7 @@ const contactService = {
                     });
                 });  
             }).catch(error => {
+                console.log(error);
                 reject(error)
             });
         })
@@ -40,9 +40,8 @@ const contactService = {
                         reject(error);
                         console.log(error)
                         //sendError(res, 409, 'That user does not exist', next);
-                    });
-            
-        })
+                    });          
+        });
     },
     acceptContact(currentUserId, contactId) {
         return new Promise((resolve, reject) => {
@@ -68,18 +67,6 @@ const contactService = {
                     });
         })
     },
-    /*if (data.fromRequest) {
-        users.findOneAndUpdate({ _id: currentUserId }, 
-            { $pull: { contactRequests: contactId, contactPendings: contactId }, 
-            $push: { contacts: contactId } })
-            .then(user => {
-                users.findOneAndUpdate({ _id: contactId}, 
-                    {$pull: {contactPendings: currentUserId, contactRequests: currentUserId}})
-                    .then( contact => {
-                        
-                    })
-            })
-    } else {*/
     removeRequest(userId, contactId){
         return new Promise( (resolve, reject) => {
             users.findOneAndUpdate({ _id: userId }, { $pull: { contactPendings: contactId } }).then(user => {

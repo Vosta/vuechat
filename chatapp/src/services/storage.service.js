@@ -8,7 +8,7 @@ const TokenService = {
         return localStorage.setItem(TOKEN_KEY, token);
     },
     removeToken(){
-        return localStorage.removeItem(TOKEN_KEY)
+        return localStorage.removeItem(TOKEN_KEY);
     }
 };
 

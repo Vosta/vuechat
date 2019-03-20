@@ -24,7 +24,7 @@ app.get('/', (req, res) => {
 
 app.use('/auth', auth);
 
-// Setting up Socket.io
+// Socket.io connection
 require('./socket/index').listen(server);
 
 function notFound(req, res, next) {

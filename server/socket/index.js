@@ -3,6 +3,7 @@ const verify = require('../middlewears/verify');
 const contactService = require('../models/contact.service');
 const chatService = require('../models/chat.service');
 const searchService = require('../models/search.service');
+const ErrorHandler = require('../helpers/errorHandeler');
 
 module.exports.listen = function (server) {
   const connections = {};
@@ -46,15 +47,14 @@ module.exports.listen = function (server) {
         })
         socket.emit('USER', userData);
         socket.broadcast.emit('CONTACT_STATUS', { id: userData._id, status: true });
-      } catch (error) {
-        console.log(error)
+      } catch (errorMessage) {
+          socket.emit('ERROR', errorMessage);
       }
     });
 
     socket.on('JOIN_ROOM', async data => {
       const user = connections[socket.id];
       let chatData;
-      let chatId;
       //if the chat is clicked from the contact section (no chatId)
       if (data.direct) {
         const participents = {
@@ -65,7 +65,7 @@ module.exports.listen = function (server) {
       } else {
         chatData = await chatService.getChat(data.chatData._id);
       }
-      chatId = chatData.chatId;
+      const chatId = chatData.chatId;
       const room = chatId;
       //leave the current room if it exists
       if (socket.room) {
