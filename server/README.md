@@ -1,6 +1,6 @@
 # server
 
-## Project setup
+## Server setup
 ```
 npm install
 ```
