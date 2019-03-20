@@ -3,19 +3,17 @@
     <v-flex>
       <chat-toolbar :name="currentChat.toolbar.name" :avatar="currentChat.toolbar.avatar"></chat-toolbar>
     </v-flex>
-    <v-flex class="chatWrapper">
-      <div v-if="currentChat.status" ref="chatDisplayId">
-        <div v-for="(message, index) in currentChat.messages" :key="index">
-          <div v-if="message.info" class="divrow">
-            <v-flex class="infoMessageWrapper">
-              <p :class="{infoMessage: message.info}">{{ message.content }}</p>
-            </v-flex>
-          </div>
-          <div v-else>
-            <v-flex class="from-contact" :class="messageByWho(message.by)">
-              <p class="chatMessage">{{ message.content }}</p>
-            </v-flex>
-          </div>
+    <v-flex v-if="currentChat.status" ref="chatDisplayId" class="chatWrapper">
+      <div v-for="(message, index) in currentChat.messages" :key="index">
+        <div v-if="message.info" class="divrow">
+          <v-flex class="infoMessageWrapper">
+            <p :class="{infoMessage: message.info}">{{ message.content }}</p>
+          </v-flex>
+        </div>
+        <div v-else>
+          <v-flex class="from-contact" :class="messageByWho(message.by)">
+            <p class="chatMessage">{{ message.content }}</p>
+          </v-flex>
         </div>
       </div>
     </v-flex>
@@ -52,24 +50,12 @@ export default {
     ...mapMutations(["SET_Message"]),
 
     messageByWho(userId) {
-      console.log(userId, this.user._id)
+      console.log(userId, this.user._id);
       if (userId === this.user._id) {
         return "from-user";
       }
       return "from-contact";
     }
-  },
-  mounted() {
-    /*this.$socket.on("recieveMessage", data => {
-      this.SET_Message(data);
-    });
-    this.$socket.on("userEnteredOrLeft", message => {
-      const userJoinedMessage = {
-        content: message,
-        info: true
-      };
-      this.SET_Message({ message: userJoinedMessage });
-    });*/
   },
   updated() {
     this.$refs.chatDisplayId.scrollTop = this.$refs.chatDisplayId.scrollHeight;
@@ -86,13 +72,14 @@ export default {
   margin-bottom: 6px;
 }
 .chatWrapper {
+  overflow-y: auto;
   height: 90%;
 }
 .chatDisplay {
   height: 90%;
   width: 100%;
   max-height: 800px;
-  overflow: auto;
+  overflow: scroll;
   position: relative;
   padding-top: 20px;
 }

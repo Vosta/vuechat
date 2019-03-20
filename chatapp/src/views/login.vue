@@ -21,20 +21,22 @@
                 </transition>
 
                 <v-flex class="authWrapper">
-
                   <div v-if="logginIn" class="logo">
                     <img src="../assets/logo.png">
                   </div>
+                  <div v-else class="avatarWrapper">
+                    <v-avatar
+                      class="avatarImage bigAvatarImage"
+                      @click="toggleAvatarDialog"
+                      size="200"
+                    >
+                      <img :src='currentAvatar'>
+                    </v-avatar>
+                  </div>
 
-                  <v-avatar v-else @click="toggleAvatarDialog" class="avatarImage bigAvatarImage" size=200>
-                    <img :src="currentAvatar">
-                  </v-avatar>
-      
-                  <avatar-picker v-if="avatarDialog">
-                    <v-flex></v-flex>
-                  </avatar-picker>
-                
-                  <v-form v-else class="authform" @submit.prevent="">
+                  <avatar-picker v-if="avatarDialog"></avatar-picker>
+
+                  <v-form v-else class="authform" @submit.prevent>
                     <v-text-field
                       prepend-icon="person"
                       name="username"
@@ -53,7 +55,7 @@
                       type="password"
                       v-validate="'required|min:3'"
                       :error-messages="errors.first('password')"
-                      ref= 'password'
+                      ref="password"
                     ></v-text-field>
 
                     <transition
@@ -105,7 +107,7 @@
 <script>
 import "animate.css";
 import { mapGetters, mapActions, mapMutations } from "vuex";
-import avatarPicker from '../components/dialogs/avatarDialog.vue'
+import avatarPicker from "../components/dialogs/avatarDialog.vue";
 export default {
   components: {
     avatarPicker
@@ -118,17 +120,17 @@ export default {
     user: {
       username: "",
       password: "",
-      confirmpassword: "",
+      confirmpassword: ""
     },
-    logginIn: true,
+    logginIn: true
   }),
   computed: {
-    ...mapGetters(["authenticationError","currentAvatar", "avatarDialog"]),
+    ...mapGetters(["authenticationError", "currentAvatar", "avatarDialog"])
   },
   watch: {
     user: {
-      handler(){
-        this.SET_authenticationError('');
+      handler() {
+        this.SET_authenticationError("");
       },
       deep: true
     }
@@ -139,9 +141,9 @@ export default {
 
     changeForm() {
       this.logginIn = !this.logginIn; //change formular
-      Object.keys(this.user).forEach(v => this.user[v] = ''); //clear the fields
+      Object.keys(this.user).forEach(v => (this.user[v] = "")); //clear the fields
     },
-    isValid(){
+    isValid() {
       return this.$validator.validate();
     },
     handleLogIn() {
@@ -157,19 +159,19 @@ export default {
         this.signUp({
           username: this.user.username,
           password: this.user.password,
-          avatar: this.currentAvatar,
+          avatar: this.currentAvatar
         });
       }
     },
-    toggleAvatarDialog(){
+    toggleAvatarDialog() {
       this.SET_avatarDialog(!this.avatarDialog);
-    },
-  },
-  sockets: {
-    connect(){
-      console.log('connected to socket')
     }
   },
+  sockets: {
+    connect() {
+      console.log("connected to socket");
+    }
+  }
 };
 </script>
 
@@ -199,6 +201,10 @@ export default {
   padding-top: 0;
   position: absolute;
 }
+.avatarText {
+  width: max-content;
+  margin: auto;
+}
 .authform {
   width: 80%;
   padding-top: 30px;
@@ -208,11 +214,13 @@ export default {
 .logo {
   align-self: center;
 }
-.bigAvatarImage{
-  border: 2px solid black;
+.avatarWrapper {
   align-self: center;
 }
-.avatarImage:hover{
+.bigAvatarImage {
+  border: 2px solid black;
+}
+.avatarImage:hover {
   cursor: pointer;
   filter: brightness(120%);
 }

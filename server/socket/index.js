@@ -1,42 +1,34 @@
 const socketio = require('socket.io');
 const verify = require('../middlewears/verify');
-const contactService = require('../models/contact.service');
-const chatService = require('../models/chat.service');
-const searchService = require('../models/search.service');
-const ErrorHandler = require('../helpers/errorHandeler');
+const contactService = require('../services/contact.service');
+const chatService = require('../services/chat.service');
+const searchService = require('../services/search.service');
+const socketFunctions = require('./socketFunctions');
 
 module.exports.listen = function (server) {
   const connections = {};
   const io = socketio.listen(server);
-
+  
   io.on("connection", socket => {
-    //connections={}
-    //temporary functions
-    function userDisconnect() {
-      if (connections[socket.id]) {
-        const user = connections[socket.id];
-        socket.broadcast.emit('CONTACT_STATUS', { id: user.userId, status: false });
-        delete connections[socket.id];
-        console.log('User disconnected');
-      }
+    //remove user from active users on log out and on application close
+    for (const event of ['disconnect', 'userDisconnect']) {
+      socket.on(event, () => {
+        socketFunctions.userDisconnect(socket, connections);
+      })
     }
-    //find a solution to combine these
-    socket.on('disconnect', () => {
-      userDisconnect();
-
-    });
-    socket.on('userDisconnect', () => {
-      userDisconnect();
-    });
     socket.on('GET_USER_DATA', async token => {
       try {
+        //verify users token
         let userData = await verify(token);
+        //add user to active users
         connections[socket.id] = {
           userId: userData._id,
           username: userData.username
         }
+        //fill users data
         userData = await contactService.refreshContacts(userData);
         userData = await chatService.refreshChats(userData);
+        //seperate active users in users contacts
         userData.contactsData.filter(contact => {
           Object.keys(connections).find(key => {
             if (connections[key].userId == contact._id) {
@@ -44,7 +36,7 @@ module.exports.listen = function (server) {
             }
             return contact.active = false;
           });
-        })
+        });
         socket.emit('USER', userData);
         socket.broadcast.emit('CONTACT_STATUS', { id: userData._id, status: true });
       } catch (errorMessage) {
@@ -53,29 +45,33 @@ module.exports.listen = function (server) {
     });
 
     socket.on('JOIN_ROOM', async data => {
-      const user = connections[socket.id];
+      const userId = connections[socket.id].userId;
       let chatData;
       //if the chat is clicked from the contact section (no chatId)
       if (data.direct) {
         const participents = {
-          userId: user.userId,
+          userId,
           contactId: data.chatData.contactId
         }
         chatData = await chatService.getDirectChat(participents);
+        //if a new chat was made then get its data for that user
+        if(chatData.newChat){
+          const newChat = await contactService.getChat(userId, chatData.chatId);
+          socket.emit('NEW_CHAT', newChat);
+        }
+
       } else {
-        chatData = await chatService.getChat(data.chatData._id);
+        chatData = await chatService.getChatMessages(data.chatData._id);
       }
+
       const chatId = chatData.chatId;
       const room = chatId;
       //leave the current room if it exists
-      if (socket.room) {
-        leaveRoom();
-      }
+      if (socket.room) socket.leave(socket.room);
       //join the room
       socket.join(room);
       socket.room = room;
       socket.emit('CHAT_DATA', chatData);
-      //socket.broadcast.to(room).emit('USER_CHAT_STATUS', `${user.username} entered the chat`);
       console.info(socket.id + ' joined room ' + room);
     });
 
@@ -91,8 +87,8 @@ module.exports.listen = function (server) {
     socket.on('CONTACT_REQUEST', async contactId => {
       const currentUserId = connections[socket.id].userId;
       const response = await contactService.addContact(currentUserId, contactId);
-      console.log(response)
       socket.emit('PENDING_CONTACT', response.contactPending);
+      //find that contacts socketId and send him the request
       Object.keys(connections).find(socketId => {
         if (connections[socketId].userId == contactId) {
           io.to(socketId).emit('CONTACT_REQUEST', response.contactRequest);
@@ -118,8 +114,8 @@ module.exports.listen = function (server) {
         await contactService.removeRequest(currentUserId, contactId);
         socket.emit('REMOVE_PENDING_REQUEST', contactId);
         //emit to contact socket that he was denied
-      } catch (error){
-        console.log(error)
+      } catch (err){
+        console.log(err)
       }
     })
     socket.on('REMOVE_CONTACT', async contactId => {

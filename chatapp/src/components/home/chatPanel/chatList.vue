@@ -1,11 +1,11 @@
 <template>
   <div>
-    <v-text-field class="searchBar" flat label="Search" prepend-inner-icon="search" hide-details single-line solo></v-text-field>
+    <v-text-field class="searchBar" flat label="Search (to be done)" disabled prepend-inner-icon="search" hide-details single-line solo></v-text-field>
     <v-list subheader class="chatList">
-      <v-subheader>Chats</v-subheader>
+      <v-subheader>Recent Chats</v-subheader>
       <v-list-tile
         v-for="chat in user.chats"
-        :key="chat.name"
+        :key="chat._id"
         avatar
         class="chatRow"
         @click="handleOpenChat(chat)"

@@ -5,7 +5,7 @@ import UserService from '../services/userService/user.service';
 import { TokenService } from '../services/storage.service';
 import { ApiService } from '../services/api.service';
 import AuthenticationError from '../services/error.service';
-Vue.use(Vuex)
+Vue.use(Vuex);
 
 export default new Vuex.Store({
     state: {
@@ -17,7 +17,7 @@ export default new Vuex.Store({
         avatarDialog: {
             avatars: [],
             avatarDialog: false,
-            currentAvatar: 'https://images-wixmp-ed30a86b8c4ca887773594c2.wixmp.com/intermediary/f/f19a8dbd-b9e4-4ce8-9726-5a1412453ce7/dabkn0i-75879278-83f3-48cc-bf00-c9cd607b5224.png',
+            currentAvatar: 'https://i.imgur.com/HeygGga.png'
         },
         user: {
             username: '',
@@ -124,49 +124,52 @@ export default new Vuex.Store({
         SOCKET_SET_MESSAGE(state, payload) {
             state.chat.messages.push(payload.message);
         },
-        SOCKET_SET_SEARCH_DATA(state, payload){
+        SOCKET_SET_SEARCH_DATA(state, payload) {
             state.search.data = payload;
             state.search.status = true;
         },
-        SOCKET_SET_REMOVE_CONTACT(state, contactId){
+        SOCKET_SET_REMOVE_CONTACT(state, contactId) {
             state.user.contactsData.forEach((contact, index) => {
-                if(contact._id === contactId) {
+                if (contact._id === contactId) {
                     state.user.contactsData.splice(index, 1);
                 }
             });
             for (const index of state.user.contactsData) {
                 console.log(index)
-                
+
             }
         },
-        SOCKET_SET_CONTACT_REQUEST(state, contact){
+        SOCKET_SET_CONTACT_REQUEST(state, contact) {
             state.user.contactRequests.push(contact);
         },
-        SOCKET_SET_PENDING_CONTACT(state, contact){
+        SOCKET_SET_PENDING_CONTACT(state, contact) {
             state.user.contactPendings.push(contact);
         },
-        SOCKET_SET_REMOVE_PENDING_REQUEST(state, contactId){
-            state.user.contactPendings.forEach( (contact, index) => {
-                if(contact._id === contactId){
+        SOCKET_SET_REMOVE_PENDING_REQUEST(state, contactId) {
+            state.user.contactPendings.forEach((contact, index) => {
+                if (contact._id === contactId) {
                     state.user.contactPendings.splice(index, 1);
                     return;
                 }
             });
         },
-        SOCKET_SET_ADD_CONTACT(state, contact){
+        SOCKET_SET_ADD_CONTACT(state, contact) {
             state.user.contactsData.push(contact);
-            state.user.contactPendings.forEach( (contact, index) => {
-                if(contact._id === contact._id){
+            state.user.contactPendings.forEach((contact, index) => {
+                if (contact._id === contact._id) {
                     state.user.contactPendings.splice(index, 1);
                     return;
                 }
             });
-            state.user.contactRequests.forEach( (contact, index) => {
-                if(contact._id === contact._id){
+            state.user.contactRequests.forEach((contact, index) => {
+                if (contact._id === contact._id) {
                     state.user.contactRequests.splice(index, 1);
                     return;
                 }
             });
+        },
+        SOCKET_SET_NEW_CHAT(state, payload) {
+            state.user.chats.push(payload);
         },
         SET_userContacts(state, payload) {
             state.user.contacts = payload;
@@ -264,7 +267,7 @@ export default new Vuex.Store({
             commit('SET_SEARCH_STATUS');
             router.push('/login');
         },
-        SOCKET_ERROR({ commit, dispatch }, errorMessage){
+        SOCKET_ERROR({ commit, dispatch }, errorMessage) {
             commit('SET_authenticationError', errorMessage);
             dispatch('logout');
         },
@@ -279,7 +282,7 @@ export default new Vuex.Store({
         },
         async getAvatars({ commit }) {
             try {
-                const avatars = await UserService.loadAvatars(ApiService.AVATARS_URL);
+                const avatars = await UserService.avatarsRequest(ApiService.AVATARS_URL);
                 commit('SET_avatars', avatars);
                 return true;
             } catch (error) {
@@ -290,7 +293,7 @@ export default new Vuex.Store({
                 return false;
             }
         },
-        
+
         async removeChat({ commit }, chatId) {
             try {
                 const token = TokenService.getToken();
@@ -305,6 +308,6 @@ export default new Vuex.Store({
                 return false;
             }
         },
-        
+
     },
 })

@@ -19,7 +19,7 @@ const UserService = {
             throw new AuthenticationError(error.response.data.message);
         }
     },
-    loadAvatars: async function (url) {
+    avatarsRequest: async function (url) {
         const requestData = {
             method: 'get',
             url,
@@ -27,72 +27,6 @@ const UserService = {
         try {
             const avatars = await ApiService.customRequest(requestData);
             return avatars.data;
-        } catch (error) {
-            throw new AuthenticationError(error.response.data.message);
-        }
-    },
-    requestData: async function (url, token) {
-        const requestData = {
-            method: 'post',
-            url,
-            data: { token }
-        }
-        try {
-            const response = await ApiService.customRequest(requestData);
-            return response.data;
-        } catch (error) {
-            throw new AuthenticationError(error.response.data.message);
-        }
-    },
-    getContact: async function (url, token, contactId) {
-        console.log(token)
-        const requestData = {
-            method: 'post',
-            url: url,
-            data: { token, contactId }
-        }
-        try {
-            const response = await ApiService.customRequest(requestData);
-            return response.data;
-        } catch (error) {
-            throw new AuthenticationError(error.response.data.message);
-        }
-    },
-    addContact: async function (url, token, data) {
-        const requestData = {
-            method: 'post',
-            url: url,
-            data: { token, data }
-        }
-        try {
-            const response = await ApiService.customRequest(requestData);
-            return response.data;
-        } catch (error) {
-            throw new AuthenticationError(error.response.data.message);
-        }
-    },
-    removeContact: async function (url, token, contactId) {
-        const requestData = {
-            method: 'post',
-            url: url,
-            data: { token, contactId }
-        }
-        try {
-            const response = await ApiService.customRequest(requestData);
-            return response.data;
-        } catch (error) {
-            throw new AuthenticationError(error.response.data.message);
-        }
-    },
-    removeChat: async function (url, token, chatId) {
-        const requestData = {
-            method: 'post',
-            url: url,
-            data: { token, chatId }
-        }
-        try {
-            const response = await ApiService.customRequest(requestData);
-            return response.data;
         } catch (error) {
             throw new AuthenticationError(error.response.data.message);
         }

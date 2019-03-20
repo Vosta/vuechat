@@ -1,13 +1,15 @@
 const express = require('express');
 const volleyball = require('volleyball');
 const cors = require('cors');
+const socket = require('./socket/index');
 require('dotenv').config();
 
 
 const app = express();
 const server = require('http').Server(app);
 
-const auth = require('./routes/auth/index');
+const auth = require('./routes/auth');
+const assets = require('./routes/assets');
 
 
 app.use(volleyball);
@@ -16,16 +18,11 @@ app.use(cors({
 }));
 app.use(express.json());
 
-app.get('/', (req, res) => {
-  res.json({
-    message: 'hi'
-  });
-});
-
 app.use('/auth', auth);
+app.use('/assets', assets);
 
 // Socket.io connection
-require('./socket/index').listen(server);
+socket.listen(server);
 
 function notFound(req, res, next) {
   res.status(404);

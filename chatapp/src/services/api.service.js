@@ -7,7 +7,7 @@ import { TokenService } from './storage.service'
 const ApiService = {
     LOGIN_URL: 'http://localhost:5000/auth/login',
     SIGNUP_URL: 'http://localhost:5000/auth/signup',
-    AVATARS_URL: 'http://localhost:5000/user/avatars',
+    AVATARS_URL: 'http://localhost:5000/assets/avatars',
     USER_DATA_URL: 'http://localhost:5000/user/data',
     SEARCH_URL: 'http://localhost:5000/user/search',
     GET_CONTACT_URL: 'http://localhost:5000/user/contact',

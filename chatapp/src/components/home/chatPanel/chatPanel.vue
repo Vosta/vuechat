@@ -22,9 +22,22 @@
             <v-icon>chat</v-icon>
           </v-btn>
 
-          <v-btn icon @click="logout()">
-            <v-icon>more_vert</v-icon>
-          </v-btn>
+          <v-menu :nudge-width="120" offset-y>
+            <template v-slot:activator="{ on }">
+              <v-btn icon v-on="on">
+                <v-icon>more_vert</v-icon>
+              </v-btn>
+            </template>
+
+            <v-list>
+              <v-list-tile @click="logout()">
+                <v-list-tile-title>Edit Profile</v-list-tile-title>
+              </v-list-tile>
+              <v-list-tile @click="logout()">
+                <v-list-tile-title>Log Out</v-list-tile-title>
+              </v-list-tile>
+            </v-list>
+          </v-menu>
         </v-toolbar>
       </v-flex>
       <div class="underToolbar">
@@ -75,7 +88,7 @@ export default {
       "SET_ActiveContacts",
       "SET_notification"
     ])
-  },
+  }
 };
 </script>
 

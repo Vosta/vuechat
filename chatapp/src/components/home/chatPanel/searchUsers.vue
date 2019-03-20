@@ -6,7 +6,7 @@
         class="searchBar"
           flat
           hide-details
-          label="Search"
+          label="Search users"
           prepend-inner-icon="search"
           single-line
           solo

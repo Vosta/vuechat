@@ -13,7 +13,7 @@ const schema = Joi.object().keys({
     avatar: Joi.string()
 })
 
-function generateToken(user, res) {
+const generateToken = (user, res) =>{
     const payload = {
         _id: user._id,
         username: user.username

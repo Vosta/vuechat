@@ -55,7 +55,7 @@ const chatService = {
                             resolve(chatData);
                         })
                     } else {
-                        //create the chat and then send chat data
+                        //create the chat
                         users.find({ _id: { $in: chatParticipents } }, { username: 1, avatar: 1 }).then(usersData => {
                             chats.insert({
                                 created_at: Date.now(),
@@ -65,6 +65,7 @@ const chatService = {
                                 participentsDATA: usersData
                             }).then(chat => {
                                 const chatData = {
+                                    newchat: true,
                                     messages: [],
                                     chatId: chat._id.toString()
                                 }
@@ -72,7 +73,6 @@ const chatService = {
                             }).catch(error => {
                                 console.log(error);
                                 reject(error);
-                                //sendError(res, 500, 'Problem connecting to server', next);
                             })
                         })
 
@@ -80,7 +80,23 @@ const chatService = {
                 })
         })
     },
-    getChat(chatId) {
+    getChatData(currentUserId, chatId){
+        return new Promise( (resolve, reject) => {
+            chats.findOne({ _id: chatId }).then(chat => {
+                if (!chat.group) {
+                    for (const participentData of chat.participentsDATA) {
+                        if (participentData._id.toString() !== currentUserId) {
+                            chat.name = participentData.username;
+                            chat.avatar = participentData.avatar;
+                            resolve(chat);
+                            break;
+                        }
+                    }
+                } else resolve(chat);
+            })
+        })
+    },
+    getChatMessages(chatId) {
         return new Promise((resolve, reject) => {
             messages.findOne({ chatId }).then(chatMessages => {
                 let messages;

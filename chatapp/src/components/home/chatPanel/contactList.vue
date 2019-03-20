@@ -3,7 +3,8 @@
     <v-text-field
       flat
       class="searchBar"
-      label="Search"
+      label="Search contacts (to be done)"
+      disabled
       prepend-inner-icon="search"
       hide-details
       single-line
