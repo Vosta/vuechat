@@ -22,10 +22,12 @@ export default new Vuex.Store({
         user: {
             username: '',
             avatar: '',
-            contacts: [],
-            contactsData: [],
-            contactRequests: [],
-            contactPendings: [],
+            contacts: {
+                approved: [],
+                approvedData: [],
+                requests: [],
+                pending: []
+            },
             chats: [],
         },
         notification: '',
@@ -129,46 +131,51 @@ export default new Vuex.Store({
             state.search.status = true;
         },
         SOCKET_SET_REMOVE_CONTACT(state, contactId) {
-            state.user.contactsData.forEach((contact, index) => {
+            state.user.contacts.approved.forEach((contact, index) => {
                 if (contact._id === contactId) {
-                    state.user.contactsData.splice(index, 1);
+                    state.user.contacts.approved.splice(index, 1);
                 }
             });
-            for (const index of state.user.contactsData) {
-                console.log(index)
-
-            }
         },
         SOCKET_SET_CONTACT_REQUEST(state, contact) {
-            state.user.contactRequests.push(contact);
+            state.user.contacts.requests.push(contact);
         },
         SOCKET_SET_PENDING_CONTACT(state, contact) {
-            state.user.contactPendings.push(contact);
+            state.user.contacts.pending.push(contact);
         },
         SOCKET_SET_REMOVE_PENDING_REQUEST(state, contactId) {
-            state.user.contactPendings.forEach((contact, index) => {
+            state.user.contacts.pending.forEach((contact, index) => {
                 if (contact._id === contactId) {
-                    state.user.contactPendings.splice(index, 1);
+                    state.user.contacts.pending.splice(index, 1);
                     return;
                 }
             });
         },
-        SOCKET_SET_ADD_CONTACT(state, contact) {
-            state.user.contactsData.push(contact);
-            state.user.contactPendings.forEach((contact, index) => {
-                if (contact._id === contact._id) {
-                    state.user.contactPendings.splice(index, 1);
+        SOCKET_SET_ADD_CONTACT(state, newContact) {
+            state.user.contacts.approved.push(newContact);
+            state.user.contacts.pending.forEach((contact, index) => {
+                if (contact._id === newContact._id) {
+                    state.user.contacts.pending.splice(index, 1);
                     return;
                 }
             });
-            state.user.contactRequests.forEach((contact, index) => {
-                if (contact._id === contact._id) {
-                    state.user.contactRequests.splice(index, 1);
+            state.user.contacts.requests.forEach((contact, index) => {
+                if (contact._id === newContact._id) {
+                    state.user.contacts.requests.splice(index, 1);
+                    return;
+                }
+            });
+        },
+        SOCKET_SET_CONTACT_STATUS(state, contact) {
+            state.user.contacts.approved.forEach((contact, index) => {
+                if (contact._id === contact.id) {
+                    contact.active = contact.status;
                     return;
                 }
             });
         },
         SOCKET_SET_NEW_CHAT(state, payload) {
+            console.log(payload)
             state.user.chats.push(payload);
         },
         SET_userContacts(state, payload) {
@@ -187,7 +194,7 @@ export default new Vuex.Store({
             state.search.status = status;
             if (!status) state.search.data = [];
         },
-        SET_searchValue(state, value) {
+        SET_SEARCH_VALUE(state, value) {
             state.search.value = value;
         },
         SET_chats(state, payload) {
@@ -206,19 +213,11 @@ export default new Vuex.Store({
                 //give the whole chat tab an unread message tab
             }*/
         },
-        SOCKET_SET_CONTACT_STATUS(state, contact) {
-            for (const key of state.user.contactsData.keys()) {
-                if (state.user.contactsData[key]._id === contact.id) {
-                    state.user.contactsData[key].active = contact.status;
-                    break;
-                }
-            }
-        },
-        SET_contactRequests(state, payload) {
-            state.user.contactRequests = payload;
+        SET_contacts_requests(state, payload) {
+            state.user.contacts.requests = payload;
         },
         SET_NewChatRequest(state, payload) {
-            state.user.contactRequests.push(payload);
+            state.user.contacts.requests.push(payload);
         },
         SET_notification(state, payload) {
             state.notification = payload;

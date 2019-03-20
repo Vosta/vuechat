@@ -8,7 +8,7 @@ const doSearch = (searchData) => {
         if (searchData.type === 'users') {
             users.find({
                 username: { $regex: searchData.value, $ne: searchData.currentUser.username, $options: 'i' },
-                _id: { $nin: searchData.currentUser.contacts }
+                _id: { $nin: searchData.currentUser.contacts.approved }
             }, { username: 1, avatar: 1 })
                 .then(filteredUsers => {
                     resolve(filteredUsers);

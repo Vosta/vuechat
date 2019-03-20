@@ -1,10 +1,10 @@
 <template>
   <div>
     <div>
-      <v-list v-if="user.contactRequests.length > 0" subheader class="contactRequestsList">
+      <v-list v-if="user.contacts.requests.length > 0" subheader class="contactRequestsList">
         <v-subheader>Contact requests</v-subheader>
         <v-list-tile
-          v-for="contact in user.contactRequests"
+          v-for="contact in user.contacts.requests"
           avatar
           class="contact"
           :key="contact.username"
@@ -23,10 +23,10 @@
           </v-list-tile-action>
         </v-list-tile>
       </v-list>
-      <v-list v-if="user.contactPendings.length > 0" subheader>
+      <v-list v-if="user.contacts.pending.length > 0" subheader>
         <v-subheader>Pending requests</v-subheader>
         <v-list-tile
-          v-for="contact in user.contactPendings"
+          v-for="contact in user.contacts.pending"
           class="searchUser"
           avatar
           :key="contact.username + 2"

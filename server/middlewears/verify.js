@@ -11,7 +11,7 @@ const auth = (token) => {
             else {
                 users.findOne({
                     username: decoded.username
-                }, { username: 1, avatar: 1, contacts: 1, contactRequests: 1, contactPendings: 1 })
+                }, { username: 1, avatar: 1, contacts: 1})
                     .then(async user => {
                         if (user) {
                             user._id = user._id.toString();

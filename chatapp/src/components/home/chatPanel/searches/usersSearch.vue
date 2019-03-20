@@ -41,9 +41,10 @@ export default {
     ...mapGetters(["user", "search"])
   },
   methods: {
-    ...mapMutations(["SET_SEARCH_STATUS"]),
+    ...mapMutations(["SET_SEARCH_STATUS", "SET_SEARCH_VALUE"]),
     sendContactRequest(contactId){
       this.$socket.emit('CONTACT_REQUEST', contactId);
+      this.SET_SEARCH_VALUE();
       this.SET_SEARCH_STATUS(false);
     }
   }

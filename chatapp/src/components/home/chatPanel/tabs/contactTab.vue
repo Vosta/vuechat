@@ -22,7 +22,7 @@
 
       <v-subheader>Contacts</v-subheader>
       <v-list-tile
-        v-for="contact in user.contactsData"
+        v-for="contact in user.contacts.approvedData"
         @click="handleOpenChat(contact)"
         avatar
         class="contact"

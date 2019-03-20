@@ -5,14 +5,18 @@ const users = db.get('users');
 const contactService = {
     refreshContacts(userData) {
         return new Promise((resolve, reject) => {
-            users.find({ _id: { $in: userData.contactRequests } }, { username: 1, avatar: 1 }).then(contactRequests => {
-                userData.contactRequests = contactRequests;
-                users.find({ _id: { $in: userData.contactPendings } }, { username: 1, avatar: 1 }).then(contactPendings => {
-                    userData.contactPendings = contactPendings;
-                    users.find({ _id: { $in: userData.contacts } }, { username: 1, avatar: 1 }).then(contacts => {
-                        userData.contactsData = contacts;
+            const userContacts = userData.contacts;
+            users.find({ _id: { $in: userContacts.requests } }, { username: 1, avatar: 1 }).then(contactRequests => {
+                userContacts.requests = contactRequests;
+                users.find({ _id: { $in: userContacts.pending } }, { username: 1, avatar: 1 }).then(contactsPending => {
+                    userContacts.pending = contactsPending;
+                    users.find({ _id: { $in: userContacts.approved } }, { username: 1, avatar: 1 }).then(contacts => {
+                        userContacts.approvedData = contacts;
+                        //update the main userData object
+                        userData.contacts = userContacts;
                         resolve(userData);
                     }).catch(error => {
+                        console.log(error)
                         reject(error);//sendError(res, 500, 'Problem connecting to server', next);
                     });
                 });
@@ -24,18 +28,28 @@ const contactService = {
     },
     addContact(currentUserId, contactId) {
         return new Promise((resolve, reject) => {
-            let response = {};
-            users.findOneAndUpdate({ _id: currentUserId, contactPendings: { $ne: contactId } },
-                { $push: { contactPendings: contactId } },
+            users.findOneAndUpdate({
+                _id: currentUserId, 'contacts.pending': { $ne: contactId },
+                'contacts.approved': { $ne: contactId }
+            },
+                { $push: { 'contacts.pending': contactId } },
                 { avatar: 1, username: 1 })
                 .then(user => {
-                    response.contactRequest = user;
-                    users.findOneAndUpdate({ _id: contactId, contactRequests: { $ne: contactId }, contacts: { $ne: contactId } },
-                        { $push: { contactRequests: currentUserId } }, { avatar: 1, username: 1 })
-                        .then(contact => {
-                            response.contactPending = contact;
-                            resolve(response);
-                        })
+                    if (user) {
+                        const contactRequest = user;
+                        users.findOneAndUpdate({ _id: contactId, 'contacts.requests': { $ne: contactId }, 'contacts.approved': { $ne: contactId } },
+                            { $push: { 'contacts.requests': currentUserId } }, { avatar: 1, username: 1 })
+                            .then(contactPending => {
+                                const response = {
+                                    contactRequest,
+                                    contactPending
+                                }
+                                resolve(response);
+                            })
+                    } else {
+                        reject('User not found')
+                    }
+
                 }).catch(error => {
                     reject(error);
                     console.log(error)
@@ -45,21 +59,29 @@ const contactService = {
     },
     acceptContact(currentUserId, contactId) {
         return new Promise((resolve, reject) => {
-            let response = {};
             users.findOneAndUpdate({ _id: currentUserId },
-                { $push: { contacts: contactId }, $pull: { contactRequests: contactId } },
+                { $push: { 'contacts.approved': contactId }, $pull: { 'contacts.requests': contactId } },
                 { avatar: 1, username: 1 })
                 .then(user => {
-                    //set user status active
-                    user.active = true;
-                    response.currentUser = user;
-                    users.findOneAndUpdate({ _id: contactId },
-                        { $push: { contacts: currentUserId }, $pull: { contactPendings: currentUserId } },
-                        { avatar: 1, username: 1 })
-                        .then(contact => {
-                            response.contact = contact;
-                            resolve(response);
-                        })
+                    if (user) {
+                        //set user status active
+                        user.active = true;
+                        const currentUser = user;
+                        users.findOneAndUpdate({ _id: contactId },
+                            { $push: { 'contacts.approved': currentUserId }, $pull: { 'contacts.pending': currentUserId } },
+                            { avatar: 1, username: 1 })
+                            .then(contact => {
+                                const response = {
+                                    currentUser,
+                                    contact
+                                }
+                                resolve(response);
+                            })
+                    } else {
+                        console.log('lele')
+                        reject('No user found')
+                    }
+
                 }).catch(error => {
                     reject(error);
                     console.log(error)
@@ -69,10 +91,10 @@ const contactService = {
     },
     removeRequest(userId, contactId) {
         return new Promise((resolve, reject) => {
-            users.findOneAndUpdate({ _id: userId }, { $pull: { contactPendings: contactId } }).then(user => {
-                if (user) 
+            users.findOneAndUpdate({ _id: userId }, { $pull: { 'contacts.pending': contactId } }).then(user => {
+                if (user)
                     resolve();
-                else 
+                else
                     reject();
             })
         })
@@ -80,18 +102,19 @@ const contactService = {
     removeContact(userId, contactId) {
         return new Promise((resolve, reject) => {
             console.log(userId)
-            users.findOneAndUpdate({ _id: userId }, { $pull: { contacts: contactId } }, { contacts: 1 }).then(userContacts => {
-                resolve(userContacts);
+            users.findOneAndUpdate({ _id: userId }, { $pull: { 'contacts.approved': contactId } }, { contacts: 1 }).then(userContacts => {
+                if (userContacts)
+                    resolve(userContacts);
+                else
+                    reject();
             })
         })
 
     },
     getContact() {
-        console.log('gettingcontact');
         const contactId = contactId.toString();
         users.findOne({ _id: contactId }, { username: 1, avatar: 1 }).then(contact => {
-            console.log(contact)
-            send(contact);
+            resolve(contact);
         })
     },
 }

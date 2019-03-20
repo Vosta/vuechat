@@ -16,7 +16,7 @@
       </v-flex>
       <v-flex>
         <search-dialog v-if="search.status"></search-dialog>
-        <contact-requests :user="user" v-else></contact-requests>
+        <contact-requests v-else :user="user"></contact-requests>
       </v-flex>
     </v-layout>
   </div>
@@ -24,31 +24,22 @@
 
 <script>
 import { mapGetters, mapActions, mapMutations } from "vuex";
-import chatList from "./chatList.vue";
-import contactList from "./contactList.vue";
-import searchDialog from "./searchDialog.vue";
-import contactRequests from "./contactRequests.vue";
+import usersSearch from "../searches/usersSearch.vue";
+import contactRequests from "../tabs/contactRequests.vue";
 export default {
   components: {
-    chatList,
-    contactList,
-    searchDialog,
+    searchDialog: usersSearch,
     contactRequests
-  },
-  data() {
-    return {
-      tablele: null
-    };
   },
   computed: {
     ...mapGetters(["user", "search"])
   },
   methods: {
     ...mapActions(["requestContacts", "searchData"]),
-    ...mapMutations(["SET_SEARCH_STATUS", "SET_searchValue"]),
+    ...mapMutations(["SET_SEARCH_STATUS", "SET_SEARCH_VALUE"]),
     updateSearch(e) {
       const searchValue = e.target.value;
-      this.SET_searchValue(searchValue);
+      this.SET_SEARCH_VALUE(searchValue);
       if (searchValue !== "") {
         const data = {
           currentUser: this.user,

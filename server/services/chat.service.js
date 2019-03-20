@@ -4,12 +4,17 @@ const chats = db.get('rooms');
 const users = db.get('users');
 const messages = db.get('messages');
 
+const getDirectChatData = (currentUserId, chat) => {
+    chat.participentsDATA.forEach(participent => {
+        if (participent._id.toString() !== currentUserId) {
+            chat.name = participent.username;
+            chat.avatar = participent.avatar;
+        }
+    });
+    return chat;
+}
+
 const chatService = {
-    leaveRoom() {
-        const user = connections[socket.id];
-        socket.broadcast.to(socket.room).emit('userEnteredOrLeft', `${user.username} left the chat`);
-        socket.leave(socket.room);
-    },
     refreshChats(userData) {
         return new Promise((resolve, reject) => {
             const currentUserId = userData._id;
@@ -17,13 +22,7 @@ const chatService = {
                 allChats.map(chat => {
                     //if its not a group then get the other contact avatar and username
                     if (!chat.group) {
-                        for (const participentData of chat.participentsDATA) {
-                            if (participentData._id.toString() !== currentUserId) {
-                                chat.name = participentData.username;
-                                chat.avatar = participentData.avatar;
-                                break;
-                            }
-                        }
+                        return chat = getDirectChatData(currentUserId, chat);
                     }
                 });
                 userData.chats = allChats;
@@ -65,7 +64,7 @@ const chatService = {
                                 participentsDATA: usersData
                             }).then(chat => {
                                 const chatData = {
-                                    newchat: true,
+                                    newChat: true,
                                     messages: [],
                                     chatId: chat._id.toString()
                                 }
@@ -80,19 +79,20 @@ const chatService = {
                 })
         })
     },
-    getChatData(currentUserId, chatId){
-        return new Promise( (resolve, reject) => {
+    getChatData(currentUserId, chatId) {
+        return new Promise((resolve, reject) => {
             chats.findOne({ _id: chatId }).then(chat => {
-                if (!chat.group) {
-                    for (const participentData of chat.participentsDATA) {
-                        if (participentData._id.toString() !== currentUserId) {
-                            chat.name = participentData.username;
-                            chat.avatar = participentData.avatar;
-                            resolve(chat);
-                            break;
-                        }
+                if (chat) {
+                    if (!chat.group) {
+                        chatData = getDirectChatData(currentUserId, chat);
+                        console.log(chatData)
+                        resolve(chatData);
                     }
-                } else resolve(chat);
+                    resolve(chat);
+                } else {
+                    reject();
+                }
+
             })
         })
     },
@@ -138,71 +138,3 @@ const chatService = {
 }
 
 module.exports = chatService;
-
-/*viewChat() {
-        const currentUser = userData;
-        const currentUserId = currentUser._id.toString();
-        const chatData = data;
-        if (chatData.direct) {
-            //return the direct conntact chat
-            const otherUser = chatData.contact;
-            const chatParticipents = [currentUserId, otherUser._id]
-            chats.findOne({ participents: { $all: chatParticipents }, group: false })
-                .then(chat => {
-                    if (chat) {
-                        //send chat data
-                        messages.findOne({ chatId: chat._id.toString() }, { _id: 0, chatId: 0 }).then(chatMessages => {
-                            let messages;
-                            chatMessages ? messages = chatMessages.messages : messages = [];
-                            const chatData = {
-                                messages,
-                                chatId: chat._id
-                            }
-                            send(chatData);
-                        })
-                    } else {
-                        //create the chat and then send chat data
-                        chats.insert({
-                            created_at: Date.now(),
-                            group: false,
-                            participents: chatParticipents,
-                            //set the display data for each user
-                            participentsDATA: {
-                                [currentUserId]: {
-                                    //chat name for this user is the username of the other user
-                                    chatName: otherUser.username,
-                                    chatAvatar: otherUser.avatar,
-                                },
-                                [otherUser._id]: {
-                                    userId: otherUser._id,
-                                    chatName: currentUser.username,
-                                    chatAvatar: currentUser.avatar,
-                                }
-                            }
-                        }).then(chat => {
-                            userData.messages = [];
-                            userData.chatId = chat._id;
-                            next();
-                        }).catch(error => {
-                            console.log(error);
-                            //sendError(res, 500, 'Problem connecting to server', next);
-                        })
-                    }
-                })
-        } else {
-            //return chat by chatId
-            chats.findOne({ _id: chatData._id }).then(chat => {
-                if (chat) {
-                    messages.findOne({ chatId: chat._id.toString() }).then(chatMessages => {
-                        let messages;
-                        chatMessages ? messages = chatMessages.messages : messages = [];
-                        const chatData = {
-                            messages,
-                            chatId: chat._id
-                        }
-                        send(chatData);
-                    })
-                }
-            })
-        }
-    },*/

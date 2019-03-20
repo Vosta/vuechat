@@ -10,15 +10,15 @@
           <v-toolbar-title class="profileUsername">{{user.username}}</v-toolbar-title>
 
           <v-spacer></v-spacer>
-          <v-btn icon @click="currentTab = 'chat-list'">
+          <v-btn icon @click="currentTab = 'chat-tab'">
             <v-icon>home</v-icon>
           </v-btn>
 
-          <v-btn icon @click="currentTab = 'search-users'">
+          <v-btn icon @click="currentTab = 'find-users-tab'">
             <v-icon>person_add</v-icon>
           </v-btn>
 
-          <v-btn icon @click="currentTab = 'contact-list' ">
+          <v-btn icon @click="currentTab = 'contact-tab' ">
             <v-icon>chat</v-icon>
           </v-btn>
 
@@ -30,7 +30,7 @@
             </template>
 
             <v-list>
-              <v-list-tile @click="logout()">
+              <v-list-tile>
                 <v-list-tile-title>Edit Profile</v-list-tile-title>
               </v-list-tile>
               <v-list-tile @click="logout()">
@@ -40,7 +40,10 @@
           </v-menu>
         </v-toolbar>
       </v-flex>
+
+
       <div class="underToolbar">
+
         <v-flex v-if="notification" class="chatPanelRow">
           <v-alert :value="true" :type="notification.type">{{ notification.msg }}</v-alert>
         </v-flex>
@@ -48,6 +51,7 @@
         <v-flex>
           <component :is="currentTab" class="componentTab"></component>
         </v-flex>
+
       </div>
     </v-layout>
   </div>
@@ -55,20 +59,18 @@
 
 <script>
 import { mapGetters, mapActions, mapMutations } from "vuex";
-import searchUsers from "./searchUsers.vue";
-import chatList from "./chatList.vue";
-import contactList from "./contactList.vue";
+import findUsersTab from "./tabs/findUsersTab.vue";
+import chatTab from "./tabs/chatTab.vue";
+import contactTab from "./tabs/contactTab.vue";
 export default {
   components: {
-    chatList,
-    contactList,
-    searchUsers
+    chatTab,
+    contactTab,
+    findUsersTab
   },
   data() {
     return {
-      contactsDialog: false,
-      addUserDialog: false,
-      currentTab: "chat-list"
+      currentTab: 'chat-tab'
     };
   },
   watch: {
@@ -83,11 +85,7 @@ export default {
   },
   methods: {
     ...mapActions(["logout", "showContacts"]),
-    ...mapMutations([
-      "SET_ActiveUsers",
-      "SET_ActiveContacts",
-      "SET_notification"
-    ])
+    ...mapMutations(["SET_notification"])
   }
 };
 </script>
@@ -126,7 +124,7 @@ export default {
 .chatNavigation {
   width: 100%;
 }
-.chatList {
+.chatTab {
   width: 100%;
   height: 100%;
 }

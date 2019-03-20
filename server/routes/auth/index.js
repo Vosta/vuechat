@@ -46,9 +46,11 @@ router.post('/signup', (req, res, next) => {
                         username: req.body.username,
                         password: hashedPassword,
                         avatar: req.body.avatar,
-                        contacts: [],
-                        contactRequests: [],
-                        contactPendings: [],
+                        contacts: {
+                            approved: [],
+                            requests: [],
+                            pending: []
+                        }
                     }
                     users.insert(newUser).then(user => {
                         generateToken(user, res);
