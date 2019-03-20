@@ -15,14 +15,3 @@ npm run serve
 npm run build
 ```
 
-# server
-
-## Project setup
-```
-npm install
-```
-
-### Start the server
-```
-npm run dev
-```
